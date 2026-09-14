@@ -1,0 +1,2534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Money Tracker Pro</title>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+:root{
+    --bg:#f4f6fb;
+    --surface:#ffffff;
+    --text:#172033;
+    --muted:#777;
+    --border:#ddd;
+    --primary:#5b5cf0;
+    --success:#16a34a;
+    --danger:#ef4444;
+    --warning:#f59e0b;
+    --shadow:0 5px 20px rgba(0,0,0,.06);
+}
+
+[data-theme="dark"]{
+    --bg:#0f172a;
+    --surface:#1e293b;
+    --text:#f1f5f9;
+    --muted:#94a3b8;
+    --border:#334155;
+    --primary:#818cf8;
+    --success:#34d399;
+    --danger:#f87171;
+    --warning:#fbbf24;
+    --shadow:0 5px 20px rgba(0,0,0,.3);
+}
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    transition:background .3s, color .3s;
+}
+
+header{
+    background:var(--surface);
+    padding:18px 30px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid var(--border);
+    position:sticky;
+    top:0;
+    z-index:10;
+    box-shadow:var(--shadow);
+}
+
+.logo{
+    font-size:22px;
+    font-weight:bold;
+}
+
+.header-actions{
+    display:flex;
+    gap:10px;
+}
+
+header button{
+    padding:10px 15px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:var(--bg);
+    color:var(--text);
+    transition:.2s;
+}
+
+header button:hover{
+    background:var(--primary);
+    color:white;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:25px;
+}
+
+h1{
+    margin-bottom:5px;
+}
+
+.subtitle{
+    color:var(--muted);
+    margin-bottom:25px;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+}
+
+.card{
+    background:var(--surface);
+    padding:20px;
+    border-radius:15px;
+    box-shadow:var(--shadow);
+}
+
+.card small{
+    color:var(--muted);
+}
+
+.card h2{
+    margin-top:10px;
+}
+
+.icon-card{
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.icon-card .icon{
+    font-size:40px;
+    width:60px;
+    height:60px;
+    display:grid;
+    place-items:center;
+    border-radius:12px;
+    background:linear-gradient(135deg, var(--primary), var(--success));
+}
+
+.green{
+    color:var(--success);
+}
+
+.red{
+    color:var(--danger);
+}
+
+.orange{
+    color:var(--warning);
+}
+
+.progress{
+    background:var(--border);
+    height:9px;
+    border-radius:10px;
+    margin-top:12px;
+    overflow:hidden;
+}
+
+.progress-bar{
+    height:100%;
+    background:linear-gradient(90deg, var(--primary), var(--success));
+    transition:width .3s;
+}
+
+.progress-bar.danger{
+    background:linear-gradient(90deg, var(--warning), var(--danger));
+}
+
+.section{
+    margin-top:20px;
+}
+
+.grid2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+.grid3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
+}
+
+button.primary{
+    background:var(--primary);
+    color:white;
+}
+
+button.primary:hover{
+    opacity:.9;
+}
+
+button.secondary{
+    background:var(--bg);
+    color:var(--text);
+    border:1px solid var(--border);
+}
+
+button.success{
+    background:var(--success);
+    color:white;
+}
+
+button.danger{
+    background:var(--danger);
+    color:white;
+}
+
+input,select,textarea{
+    width:100%;
+    padding:10px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    margin-top:5px;
+    background:var(--surface);
+    color:var(--text);
+}
+
+label{
+    font-size:13px;
+    font-weight:bold;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+.full{
+    grid-column:1/-1;
+}
+
+.tag-buttons{
+    display:flex;
+    gap:10px;
+}
+
+.tag-buttons button{
+    flex:1;
+    padding:10px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    border-radius:8px;
+}
+
+.tag-buttons .selected-essential{
+    background:#dcfce7;
+    color:#15803d;
+    border-color:#16a34a;
+}
+
+.tag-buttons .selected-wasteful{
+    background:#fee2e2;
+    color:#dc2626;
+    border-color:#ef4444;
+}
+
+.expense{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr 1fr auto;
+    gap:10px;
+    align-items:center;
+    padding:14px 0;
+    border-bottom:1px solid var(--border);
+}
+
+.income-item{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr auto;
+    gap:10px;
+    align-items:center;
+    padding:14px 0;
+    border-bottom:1px solid var(--border);
+}
+
+.badge{
+    padding:5px 8px;
+    border-radius:20px;
+    font-size:12px;
+    display:inline-block;
+}
+
+.essential{
+    background:#dcfce7;
+    color:#15803d;
+}
+
+.wasteful{
+    background:#fee2e2;
+    color:#dc2626;
+}
+
+.delete{
+    background:none;
+    color:var(--danger);
+    border:none;
+    cursor:pointer;
+    font-size:18px;
+}
+
+.filters{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:10px;
+}
+
+.insights{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+}
+
+.insight{
+    background:var(--bg);
+    padding:15px;
+    border-radius:10px;
+    border:1px solid var(--border);
+}
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.5);
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+    z-index:50;
+    overflow-y:auto;
+}
+
+.modal.active{
+    display:flex;
+}
+
+.modal-content{
+    background:var(--surface);
+    width:500px;
+    max-width:100%;
+    padding:25px;
+    border-radius:15px;
+    max-height:90vh;
+    overflow-y:auto;
+}
+
+.modal-content.wide{
+    width:700px;
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:20px;
+    align-items:center;
+}
+
+.close{
+    background:none;
+    border:none;
+    font-size:24px;
+    cursor:pointer;
+    color:var(--muted);
+}
+
+.history{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.month-btn{
+    padding:8px 12px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    border-radius:8px;
+    cursor:pointer;
+    color:var(--text);
+}
+
+.month-btn.active{
+    background:var(--primary);
+    color:white;
+}
+
+.empty{
+    text-align:center;
+    padding:30px;
+    color:var(--muted);
+}
+
+.goal-card{
+    background:var(--bg);
+    padding:15px;
+    border-radius:10px;
+    border:1px solid var(--border);
+}
+
+.goal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+}
+
+.recurring-item{
+    background:var(--bg);
+    padding:12px;
+    border-radius:8px;
+    margin-bottom:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.category-icon{
+    font-size:20px;
+    margin-right:8px;
+}
+
+.alert{
+    background:#fee2e2;
+    color:#dc2626;
+    padding:12px;
+    border-radius:8px;
+    margin:10px 0;
+    border-left:4px solid #ef4444;
+}
+
+.alert.success{
+    background:#dcfce7;
+    color:#15803d;
+    border-left-color:#16a34a;
+}
+
+.tabs{
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+    border-bottom:2px solid var(--border);
+}
+
+.tab{
+    padding:10px 20px;
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--muted);
+    border-bottom:2px solid transparent;
+    margin-bottom:-2px;
+}
+
+.tab.active{
+    color:var(--primary);
+    border-bottom-color:var(--primary);
+}
+
+.week-card{
+    background:var(--bg);
+    padding:12px;
+    border-radius:8px;
+    border:1px solid var(--border);
+}
+
+.toast{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    background:#111827;
+    color:white;
+    padding:15px 20px;
+    border-radius:10px;
+    box-shadow:0 10px 30px rgba(0,0,0,.3);
+    z-index:100;
+    opacity:0;
+    transform:translateY(20px);
+    transition:.3s;
+}
+
+.toast.show{
+    opacity:1;
+    transform:translateY(0);
+}
+
+@media(max-width:900px){
+    .cards{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .grid2,.grid3{
+        grid-template-columns:1fr;
+    }
+
+    .insights{
+        grid-template-columns:1fr;
+    }
+
+    .filters{
+        grid-template-columns:1fr 1fr;
+    }
+}
+
+@media(max-width:600px){
+    header{
+        padding:15px;
+    }
+
+    .header-actions{
+        flex-wrap:wrap;
+    }
+
+    .container{
+        padding:15px;
+    }
+
+    .cards{
+        grid-template-columns:1fr;
+    }
+
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .full{
+        grid-column:auto;
+    }
+
+    .filters{
+        grid-template-columns:1fr;
+    }
+
+    .expense{
+        grid-template-columns:1fr auto;
+    }
+
+    .expense .hide-mobile{
+        display:none;
+    }
+
+    .income-item{
+        grid-template-columns:1fr auto;
+    }
+
+    .modal-content{
+        padding:20px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">💰 Money Tracker Pro</div>
+
+    <div class="header-actions">
+        <span id="userEmail" style="color:var(--muted);font-size:14px;display:none"></span>
+        <button onclick="openIncome()" id="incomeBtn" style="display:none">💵 Income</button>
+        <button onclick="openBalance()" id="balanceBtn" style="display:none">💳 Balance</button>
+        <button onclick="openRecurring()" id="recurringBtn" style="display:none">🔄 Recurring</button>
+        <button onclick="openGoals()" id="goalsBtn" style="display:none">🎯 Goals</button>
+        <button onclick="openSettings()" id="settingsBtn" style="display:none">⚙️</button>
+        <button onclick="toggleDark()" id="themeBtn">🌙</button>
+        <button onclick="logout()" id="logoutBtn" style="display:none;background:var(--danger);color:white">Logout</button>
+    </div>
+</header>
+
+<div class="container" id="mainContainer" style="display:none">
+
+    <h1>Money Dashboard</h1>
+    <p class="subtitle">
+        Complete financial tracking with income, expenses, goals & insights.
+    </p>
+
+    <!-- QUICK ADD EXPENSE -->
+    <div class="card" style="background:linear-gradient(135deg, var(--primary), var(--success));color:white;padding:20px;margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px">
+            <h3 style="margin:0">⚡ Quick Add Expense</h3>
+            <button class="success" onclick="openIncome()" style="padding:10px 20px;font-weight:bold">
+                💵 + Add Income
+            </button>
+        </div>
+        <form id="quickAddForm" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+            <div style="flex:1;min-width:120px">
+                <label style="color:rgba(255,255,255,.9);font-size:12px">Amount (₹)</label>
+                <input type="number" id="quickAmount" placeholder="500" min="1" required
+                    style="width:100%;padding:10px;border:none;border-radius:8px;margin-top:5px">
+            </div>
+            <div style="flex:1.5;min-width:150px">
+                <label style="color:rgba(255,255,255,.9);font-size:12px">Category</label>
+                <select id="quickCategory" required
+                    style="width:100%;padding:10px;border:none;border-radius:8px;margin-top:5px"></select>
+            </div>
+            <div style="flex:1.5;min-width:150px">
+                <label style="color:rgba(255,255,255,.9);font-size:12px">Note (Optional)</label>
+                <input type="text" id="quickNote" placeholder="Coffee, lunch..."
+                    style="width:100%;padding:10px;border:none;border-radius:8px;margin-top:5px">
+            </div>
+            <button type="submit"
+                style="background:white;color:var(--primary);padding:10px 25px;border:none;border-radius:8px;font-weight:bold;cursor:pointer">
+                ➕ Add Now
+            </button>
+        </form>
+    </div>
+
+    <!-- DASHBOARD CARDS -->
+
+    <div class="cards">
+
+        <div class="card">
+            <small>AVAILABLE BALANCE</small>
+            <h2 id="balance" class="green">₹0</h2>
+            <small>Current available money</small>
+        </div>
+
+        <div class="card">
+            <small>THIS MONTH INCOME</small>
+            <h2 id="totalIncome" class="green">₹0</h2>
+            <small id="monthName"></small>
+        </div>
+
+        <div class="card">
+            <small>THIS MONTH SPEND</small>
+            <h2 id="totalSpend" class="red">₹0</h2>
+            <small>Total expenses</small>
+        </div>
+
+        <div class="card">
+            <small>SAVINGS THIS MONTH</small>
+            <h2 id="savings" class="orange">₹0</h2>
+            <small id="savingsPercent">0% saved</small>
+        </div>
+
+    </div>
+
+    <!-- QUICK STATS -->
+
+    <div class="section grid3">
+
+        <div class="card">
+            <small>WASTEFUL SPEND</small>
+            <h2 class="red" id="wastefulSpend">₹0</h2>
+            <small id="wastePercent">0% of total</small>
+        </div>
+
+        <div class="card">
+            <small>ESSENTIAL SPEND</small>
+            <h2 class="green" id="essentialSpend">₹0</h2>
+            <small>Necessary expenses</small>
+        </div>
+
+        <div class="card">
+            <small>BUDGET STATUS</small>
+            <h2 id="budgetStatus">₹0</h2>
+            <div class="progress">
+                <div class="progress-bar" id="budgetBar"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ALERTS -->
+    <div id="alertsContainer"></div>
+
+    <!-- DAILY TRACKER -->
+
+    <div class="section card">
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('expenses')">
+                💸 Expenses
+            </button>
+            <button class="tab" onclick="switchTab('income')">
+                💵 Income
+            </button>
+        </div>
+
+        <div id="expensesTab">
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+                <div>
+                    <h3>Daily Tracker</h3>
+                    <small id="expenseCount"></small>
+                </div>
+                <div style="display:flex;gap:10px">
+                    <button class="secondary" onclick="exportCSV()">CSV</button>
+                    <button class="secondary" onclick="exportPDF()">PDF</button>
+                </div>
+            </div>
+
+            <div class="filters">
+                <input type="date" id="filterFrom">
+                <input type="date" id="filterTo">
+                <select id="filterCategory">
+                    <option value="">All Categories</option>
+                </select>
+                <select id="filterTag">
+                    <option value="">All Tags</option>
+                    <option value="Essential">Essential</option>
+                    <option value="Wasteful">Wasteful</option>
+                </select>
+                <input type="text" id="search" placeholder="Search...">
+            </div>
+
+            <div id="expenseList"></div>
+
+        </div>
+
+        <div id="incomeTab" style="display:none">
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+                <div>
+                    <h3>Income History</h3>
+                    <small id="incomeCount"></small>
+                </div>
+            </div>
+
+            <div id="incomeList"></div>
+
+        </div>
+
+    </div>
+
+    <!-- SAVINGS GOALS -->
+
+    <div class="section card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+            <h3>🎯 Savings Goals</h3>
+            <button class="primary" onclick="openGoals()">Manage Goals</button>
+        </div>
+        <div id="goalsDisplay"></div>
+    </div>
+
+    <!-- SMART INSIGHTS -->
+
+    <div class="section card">
+        <h3>🧠 Smart Insights</h3>
+        <div class="insights" id="insights" style="margin-top:15px"></div>
+    </div>
+
+    <!-- WEEKLY BREAKDOWN -->
+
+    <div class="section card">
+        <h3>📊 Weekly Breakdown</h3>
+        <div id="weeklyBreakdown" style="margin-top:15px"></div>
+    </div>
+
+    <!-- CHARTS -->
+
+    <div class="section grid2">
+
+        <div class="card">
+            <h3>📈 Category Spending</h3>
+            <canvas id="categoryChart"></canvas>
+        </div>
+
+        <div class="card">
+            <h3>📉 Daily Spending Trend</h3>
+            <canvas id="dailyChart"></canvas>
+        </div>
+
+    </div>
+
+    <!-- MONTH COMPARISON -->
+
+    <div class="section card">
+        <h3>📅 Month Comparison</h3>
+        <canvas id="comparisonChart" style="max-height:300px"></canvas>
+    </div>
+
+    <!-- PAYMENT METHOD BREAKDOWN -->
+
+    <div class="section card">
+        <h3>💳 Payment Methods Used</h3>
+        <div id="paymentBreakdown" style="margin-top:15px"></div>
+    </div>
+
+    <!-- TOP SPENDING DAYS -->
+
+    <div class="section card">
+        <h3>📆 Top Spending Days</h3>
+        <div id="topDays" style="margin-top:15px"></div>
+    </div>
+
+    <!-- MONTH HISTORY -->
+
+    <div class="section card">
+        <h3>📅 Saved Months</h3>
+        <p style="color:var(--muted);margin:8px 0 15px">
+            Switch between months to view history.
+        </p>
+        <div class="history" id="monthHistory"></div>
+    </div>
+
+</div>
+
+
+<!-- EXPENSE MODAL -->
+
+<div class="modal" id="expenseModal">
+<div class="modal-content">
+
+<div class="modal-header">
+<h2>Add Expense</h2>
+<button class="close" onclick="closeExpense()">✕</button>
+</div>
+
+<form id="expenseForm">
+<div class="form-grid">
+
+<div>
+<label>Amount</label>
+<input id="amount" type="number" min="1" required>
+</div>
+
+<div>
+<label>Date</label>
+<input id="expenseDate" type="date" required>
+</div>
+
+<div>
+<label>Category</label>
+<select id="category" required></select>
+</div>
+
+<div>
+<label>Payment Mode</label>
+<select id="payment">
+<option>Cash</option>
+<option>UPI</option>
+<option>Card</option>
+<option>Bank Transfer</option>
+</select>
+</div>
+
+<div class="full">
+<label>Necessary or Wasteful?</label>
+<div class="tag-buttons">
+<button type="button" id="essentialBtn" class="selected-essential" onclick="selectTag('Essential')">
+✓ Essential
+</button>
+<button type="button" id="wastefulBtn" onclick="selectTag('Wasteful')">
+⚠ Wasteful
+</button>
+</div>
+</div>
+
+<div class="full">
+<label>Note / Description</label>
+<textarea id="note" placeholder="What did you spend money on?"></textarea>
+</div>
+
+<div class="full">
+<button class="primary" style="width:100%;padding:12px" type="submit">
+Add Expense
+</button>
+</div>
+
+</div>
+</form>
+
+</div>
+</div>
+
+
+<!-- INCOME MODAL -->
+
+<div class="modal" id="incomeModal">
+<div class="modal-content">
+
+<div class="modal-header">
+<h2>💵 Add Income</h2>
+<button class="close" onclick="closeIncome()">✕</button>
+</div>
+
+<form id="incomeForm">
+<div class="form-grid">
+
+<div>
+<label>Amount</label>
+<input id="incomeAmount" type="number" min="1" required>
+</div>
+
+<div>
+<label>Date</label>
+<input id="incomeDate" type="date" required>
+</div>
+
+<div class="full">
+<label>Source</label>
+<select id="incomeSource" required>
+<option>Salary</option>
+<option>Freelance</option>
+<option>Business</option>
+<option>Investment</option>
+<option>Gift</option>
+<option>Other</option>
+</select>
+</div>
+
+<div class="full">
+<label>Description</label>
+<textarea id="incomeNote" placeholder="Income description..."></textarea>
+</div>
+
+<div class="full">
+<button class="success" style="width:100%;padding:12px" type="submit">
+Add Income
+</button>
+</div>
+
+</div>
+</form>
+
+</div>
+</div>
+
+
+<!-- BALANCE MODAL -->
+
+<div class="modal" id="balanceModal">
+<div class="modal-content">
+
+<div class="modal-header">
+<h2>💳 My Balance</h2>
+<button class="close" onclick="closeBalance()">✕</button>
+</div>
+
+<p style="color:var(--muted);margin-bottom:15px">
+Set your starting balance or adjust current balance.
+</p>
+
+<label>Current Balance</label>
+<input type="number" id="balanceInput" placeholder="50000">
+
+<br><br>
+
+<button class="primary" style="width:100%;padding:12px" onclick="saveBalance()">
+Save Balance
+</button>
+
+</div>
+</div>
+
+
+<!-- RECURRING EXPENSES MODAL -->
+
+<div class="modal" id="recurringModal">
+<div class="modal-content">
+
+<div class="modal-header">
+<h2>🔄 Recurring Expenses</h2>
+<button class="close" onclick="closeRecurring()">✕</button>
+</div>
+
+<p style="color:var(--muted);margin-bottom:15px">
+Add bills and subscriptions that auto-add monthly.
+</p>
+
+<form id="recurringForm">
+<div class="form-grid">
+
+<div>
+<label>Name</label>
+<input id="recurringName" type="text" required placeholder="Netflix, Rent, etc">
+</div>
+
+<div>
+<label>Amount</label>
+<input id="recurringAmount" type="number" min="1" required>
+</div>
+
+<div>
+<label>Category</label>
+<select id="recurringCategory" required></select>
+</div>
+
+<div>
+<label>Day of Month</label>
+<input id="recurringDay" type="number" min="1" max="31" required placeholder="1-31">
+</div>
+
+<div class="full">
+<button class="primary" style="width:100%;padding:12px" type="submit">
+Add Recurring Expense
+</button>
+</div>
+
+</div>
+</form>
+
+<h3 style="margin-top:20px">Active Recurring Expenses</h3>
+
+<div id="recurringList" style="margin-top:10px"></div>
+
+</div>
+</div>
+
+
+<!-- SAVINGS GOALS MODAL -->
+
+<div class="modal" id="goalsModal">
+<div class="modal-content">
+
+<div class="modal-header">
+<h2>🎯 Savings Goals</h2>
+<button class="close" onclick="closeGoals()">✕</button>
+</div>
+
+<form id="goalsForm">
+<div class="form-grid">
+
+<div class="full">
+<label>Goal Name</label>
+<input id="goalName" type="text" required placeholder="New Phone, Vacation, etc">
+</div>
+
+<div>
+<label>Target Amount</label>
+<input id="goalTarget" type="number" min="1" required>
+</div>
+
+<div>
+<label>Current Saved</label>
+<input id="goalCurrent" type="number" min="0" value="0">
+</div>
+
+<div class="full">
+<label>Target Date (Optional)</label>
+<input id="goalDate" type="date">
+</div>
+
+<div class="full">
+<button class="primary" style="width:100%;padding:12px" type="submit">
+Add Goal
+</button>
+</div>
+
+</div>
+</form>
+
+<h3 style="margin-top:20px">Active Goals</h3>
+
+<div id="goalsList" style="margin-top:10px"></div>
+
+</div>
+</div>
+
+
+<!-- SETTINGS MODAL -->
+
+<div class="modal" id="settingsModal">
+<div class="modal-content wide">
+
+<div class="modal-header">
+<h2>⚙️ Settings</h2>
+<button class="close" onclick="closeSettings()">✕</button>
+</div>
+
+<h3>💰 Budget Settings</h3>
+
+<div class="form-grid" style="margin-top:10px">
+
+<div>
+<label>Monthly Budget</label>
+<input type="number" id="budgetInput" placeholder="30000">
+</div>
+
+<div>
+<label>Wasteful Spending Limit</label>
+<input type="number" id="wasteLimitInput" placeholder="5000">
+</div>
+
+</div>
+
+<button class="primary" style="margin-top:10px" onclick="saveBudget()">
+Save Budget
+</button>
+
+<hr style="margin:25px 0;border:none;border-top:1px solid var(--border)">
+
+<h3>📂 Custom Categories</h3>
+
+<p style="color:var(--muted);margin:8px 0">
+Add your own expense categories with emojis.
+</p>
+
+<div style="display:flex;gap:10px;margin-top:10px">
+<input type="text" id="newCategoryInput" placeholder="🎮 Gaming" style="flex:1">
+<button class="primary" onclick="addCategory()">Add</button>
+</div>
+
+<div id="customCategoriesList" style="margin-top:15px"></div>
+
+<hr style="margin:25px 0;border:none;border-top:1px solid var(--border)">
+
+<h3>💾 Data Backup</h3>
+
+<p style="color:var(--muted);margin:8px 0">
+Download or restore your complete data.
+</p>
+
+<div style="display:flex;gap:10px;margin-top:10px">
+
+<button class="secondary" onclick="backupData()">
+📥 Download Backup
+</button>
+
+<button class="secondary" onclick="document.getElementById('restoreFile').click()">
+📤 Restore Backup
+</button>
+
+<input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreData(event)">
+
+</div>
+
+</div>
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+
+<!-- LOGIN/SIGNUP MODAL -->
+
+<div class="modal active" id="authModal">
+<div class="modal-content">
+
+<div style="text-align:center;margin-bottom:30px">
+    <h1>💰 Money Tracker Pro</h1>
+    <p style="color:var(--muted)">Sync your data across all devices</p>
+</div>
+
+<div class="tabs" style="margin-bottom:20px">
+    <button class="tab active" onclick="switchAuthTab('login')" id="loginTab">
+        Login
+    </button>
+    <button class="tab" onclick="switchAuthTab('signup')" id="signupTab">
+        Sign Up
+    </button>
+</div>
+
+<!-- Login Form -->
+<div id="loginForm">
+    <form onsubmit="loginUser(event)">
+        <div class="form-grid">
+            <div class="full">
+                <label>Email</label>
+                <input type="email" id="loginEmail" required placeholder="your@email.com">
+            </div>
+            <div class="full">
+                <label>Password</label>
+                <input type="password" id="loginPassword" required placeholder="••••••••">
+            </div>
+            <div class="full">
+                <button class="primary" type="submit" style="width:100%;padding:12px">
+                    🔐 Login
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Signup Form -->
+<div id="signupForm" style="display:none">
+    <form onsubmit="signupUser(event)">
+        <div class="form-grid">
+            <div class="full">
+                <label>Email</label>
+                <input type="email" id="signupEmail" required placeholder="your@email.com">
+            </div>
+            <div class="full">
+                <label>Password</label>
+                <input type="password" id="signupPassword" required placeholder="••••••••" minlength="6">
+                <small style="color:var(--muted)">At least 6 characters</small>
+            </div>
+            <div class="full">
+                <label>Confirm Password</label>
+                <input type="password" id="signupConfirmPassword" required placeholder="••••••••">
+            </div>
+            <div class="full">
+                <button class="success" type="submit" style="width:100%;padding:12px">
+                    ✨ Create Account
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div style="text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
+    <small style="color:var(--muted)">
+        Your data is securely stored in the cloud<br>
+        Access from any device, anywhere
+    </small>
+</div>
+
+</div>
+</div>
+
+
+<script>
+
+// Firebase Configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyBw8K7mYxample_REPLACE_WITH_YOUR_KEY",
+    authDomain: "money-tracker-example.firebaseapp.com",
+    projectId: "money-tracker-example",
+    storageBucket: "money-tracker-example.appspot.com",
+    messagingSenderId: "123456789012",
+    appId: "1:123456789012:web:abcdef123456",
+    databaseURL: "https://money-tracker-example-default-rtdb.firebaseio.com"
+};
+
+// Initialize Firebase
+let app, auth, database, currentUser = null;
+
+try {
+    app = firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    database = firebase.database();
+    console.log("Firebase initialized successfully");
+} catch (error) {
+    console.error("Firebase initialization error:", error);
+    showToast("⚠️ Cloud sync disabled - using local storage only");
+}
+
+const defaultCategories=[
+    "🍔 Food",
+    "🚗 Travel",
+    "🛍️ Shopping",
+    "🎬 Entertainment",
+    "💡 Bills",
+    "📱 Subscriptions",
+    "🎁 Impulse Buy",
+    "📦 Other"
+];
+
+let categories =
+JSON.parse(localStorage.getItem("categories")) || [...defaultCategories];
+
+let expenses =
+JSON.parse(localStorage.getItem("expenses")) || [];
+
+let income =
+JSON.parse(localStorage.getItem("income")) || [];
+
+let account =
+JSON.parse(localStorage.getItem("account")) || {
+    startingBalance:0
+};
+
+let budgets =
+JSON.parse(localStorage.getItem("budgets")) || {};
+
+let recurring =
+JSON.parse(localStorage.getItem("recurring")) || [];
+
+let goals =
+JSON.parse(localStorage.getItem("goals")) || [];
+
+let settings =
+JSON.parse(localStorage.getItem("settings")) || {
+    theme:"light",
+    budgetAlerts:true
+};
+
+let selectedTag="Essential";
+
+let currentMonth =
+new Date().toISOString().slice(0,7);
+
+let categoryChart=null;
+let dailyChart=null;
+let comparisonChart=null;
+
+
+/* QUICK ADD EXPENSE */
+
+document.getElementById("quickAddForm").onsubmit = function(e){
+    e.preventDefault();
+
+    const amount = Number(document.getElementById("quickAmount").value);
+    const category = document.getElementById("quickCategory").value;
+    const note = document.getElementById("quickNote").value.trim();
+
+    if(!amount || !category){
+        showToast("Please fill amount and category!");
+        return;
+    }
+
+    expenses.push({
+        id: Date.now(),
+        amount: amount,
+        category: category,
+        date: new Date().toISOString().slice(0,10),
+        note: note || category,
+        payment: "Quick Add",
+        tag: "Essential"
+    });
+
+    saveData();
+    this.reset();
+    renderDashboard();
+    renderExpenseList();
+    showToast(`₹${amount} added to ${category}!`);
+};
+
+
+/* FIREBASE AUTHENTICATION */
+
+// Auth state listener
+if(auth){
+    auth.onAuthStateChanged(user => {
+        if(user){
+            currentUser = user;
+            document.getElementById("authModal").classList.remove("active");
+            document.getElementById("mainContainer").style.display = "block";
+            document.getElementById("userEmail").textContent = user.email;
+            document.getElementById("userEmail").style.display = "inline-block";
+
+            // Show all buttons
+            document.getElementById("incomeBtn").style.display = "inline-block";
+            document.getElementById("balanceBtn").style.display = "inline-block";
+            document.getElementById("recurringBtn").style.display = "inline-block";
+            document.getElementById("goalsBtn").style.display = "inline-block";
+            document.getElementById("settingsBtn").style.display = "inline-block";
+            document.getElementById("logoutBtn").style.display = "inline-block";
+
+            loadUserData();
+            setupRealtimeSync();
+        } else {
+            currentUser = null;
+            document.getElementById("authModal").classList.add("active");
+            document.getElementById("mainContainer").style.display = "none";
+            document.getElementById("userEmail").style.display = "none";
+
+            // Hide all buttons
+            document.getElementById("incomeBtn").style.display = "none";
+            document.getElementById("balanceBtn").style.display = "none";
+            document.getElementById("recurringBtn").style.display = "none";
+            document.getElementById("goalsBtn").style.display = "none";
+            document.getElementById("settingsBtn").style.display = "none";
+            document.getElementById("logoutBtn").style.display = "none";
+        }
+    });
+}
+
+// Switch auth tabs
+function switchAuthTab(tab){
+    if(tab === 'login'){
+        document.getElementById("loginTab").classList.add("active");
+        document.getElementById("signupTab").classList.remove("active");
+        document.getElementById("loginForm").style.display = "block";
+        document.getElementById("signupForm").style.display = "none";
+    } else {
+        document.getElementById("signupTab").classList.add("active");
+        document.getElementById("loginTab").classList.remove("active");
+        document.getElementById("signupForm").style.display = "block";
+        document.getElementById("loginForm").style.display = "none";
+    }
+}
+
+// Login
+function loginUser(e){
+    e.preventDefault();
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+
+    if(!auth){
+        showToast("⚠️ Firebase not configured");
+        return;
+    }
+
+    auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+            showToast("✅ Logged in successfully!");
+        })
+        .catch(error => {
+            showToast("❌ " + error.message);
+        });
+}
+
+// Signup
+function signupUser(e){
+    e.preventDefault();
+    const email = document.getElementById("signupEmail").value;
+    const password = document.getElementById("signupPassword").value;
+    const confirmPassword = document.getElementById("signupConfirmPassword").value;
+
+    if(password !== confirmPassword){
+        showToast("❌ Passwords don't match!");
+        return;
+    }
+
+    if(!auth){
+        showToast("⚠️ Firebase not configured");
+        return;
+    }
+
+    auth.createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+            showToast("✅ Account created successfully!");
+        })
+        .catch(error => {
+            showToast("❌ " + error.message);
+        });
+}
+
+// Logout
+function logout(){
+    if(!auth) return;
+
+    if(confirm("Are you sure you want to logout?")){
+        auth.signOut()
+            .then(() => {
+                showToast("✅ Logged out successfully");
+            })
+            .catch(error => {
+                showToast("❌ " + error.message);
+            });
+    }
+}
+
+// Load user data from Firebase
+function loadUserData(){
+    if(!currentUser || !database) return;
+
+    const userRef = database.ref('users/' + currentUser.uid);
+
+    userRef.once('value').then(snapshot => {
+        const data = snapshot.val();
+        if(data){
+            expenses = data.expenses || [];
+            income = data.income || [];
+            account = data.account || {startingBalance: 0};
+            budgets = data.budgets || {};
+            recurring = data.recurring || [];
+            goals = data.goals || [];
+            categories = data.categories || [...defaultCategories];
+            settings = data.settings || {theme: "light"};
+
+            init();
+            showToast("☁️ Data synced from cloud");
+        } else {
+            init();
+        }
+    });
+}
+
+// Setup realtime sync
+function setupRealtimeSync(){
+    if(!currentUser || !database) return;
+
+    const userRef = database.ref('users/' + currentUser.uid);
+
+    userRef.on('value', snapshot => {
+        const data = snapshot.val();
+        if(data && !isSaving){
+            expenses = data.expenses || [];
+            income = data.income || [];
+            account = data.account || {startingBalance: 0};
+            budgets = data.budgets || {};
+            recurring = data.recurring || [];
+            goals = data.goals || [];
+            categories = data.categories || [...defaultCategories];
+            settings = data.settings || {theme: "light"};
+
+            renderDashboard();
+            renderExpenseList();
+            renderIncomeList();
+        }
+    });
+}
+
+let isSaving = false;
+
+// Save to Firebase
+function saveToFirebase(){
+    if(!currentUser || !database) return;
+
+    isSaving = true;
+
+    const userRef = database.ref('users/' + currentUser.uid);
+
+    userRef.set({
+        expenses,
+        income,
+        account,
+        budgets,
+        recurring,
+        goals,
+        categories,
+        settings,
+        lastUpdated: Date.now()
+    }).then(() => {
+        isSaving = false;
+    }).catch(error => {
+        isSaving = false;
+        console.error("Save error:", error);
+    });
+}
+
+
+/* INITIALIZE */
+
+function init(){
+    populateCategories();
+    populateQuickCategory();
+    applyTheme();
+    checkRecurring();
+    renderDashboard();
+    renderExpenseList();
+    renderIncomeList();
+}
+
+function populateQuickCategory(){
+    document.getElementById("quickCategory").innerHTML =
+        '<option value="">Select...</option>' +
+        categories.map(c=>`<option>${c}</option>`).join("");
+}
+
+
+/* THEME */
+
+function applyTheme(){
+    document.documentElement.setAttribute("data-theme", settings.theme);
+    document.getElementById("themeBtn").textContent = settings.theme==="dark"?"☀️":"🌙";
+}
+
+function toggleDark(){
+    settings.theme = settings.theme==="dark"?"light":"dark";
+    applyTheme();
+    saveData();
+    showToast("Theme changed to " + settings.theme + " mode");
+}
+
+
+/* CATEGORIES */
+
+function populateCategories(){
+    const selects = ["category", "filterCategory", "recurringCategory"];
+    selects.forEach(id=>{
+        document.getElementById(id).innerHTML =
+        '<option value="">Select Category</option>' +
+        categories.map(c=>`<option>${c}</option>`).join("");
+    });
+    populateQuickCategory();
+}
+
+function populateQuickCategory(){
+    document.getElementById("quickCategory").innerHTML =
+        '<option value="">Select...</option>' +
+        categories.map(c=>`<option>${c}</option>`).join("");
+}
+
+function addCategory(){
+    const input = document.getElementById("newCategoryInput");
+    const cat = input.value.trim();
+    if(!cat) return;
+    if(categories.includes(cat)){
+        showToast("Category already exists!");
+        return;
+    }
+    categories.push(cat);
+    saveData();
+    populateCategories();
+    renderCustomCategories();
+    input.value="";
+    showToast("Category added!");
+}
+
+function removeCategory(cat){
+    if(!confirm("Remove this category?")) return;
+    categories = categories.filter(c=>c!==cat);
+    saveData();
+    populateCategories();
+    renderCustomCategories();
+    showToast("Category removed");
+}
+
+function renderCustomCategories(){
+    const custom = categories.filter(c=>!defaultCategories.includes(c));
+    document.getElementById("customCategoriesList").innerHTML =
+    custom.length
+    ? custom.map(c=>`
+        <div class="recurring-item">
+            <span>${c}</span>
+            <button class="delete" onclick="removeCategory('${c}')">✕</button>
+        </div>
+    `).join("")
+    : '<div class="empty">No custom categories yet.</div>';
+}
+
+
+/* MONTH NAME */
+
+function monthName(month){
+    let date=new Date(month+"-01");
+    return date.toLocaleString("en-US",{
+        month:"long",
+        year:"numeric"
+    });
+}
+
+
+/* SAVE DATA */
+
+function saveData(){
+    localStorage.setItem("expenses", JSON.stringify(expenses));
+    localStorage.setItem("income", JSON.stringify(income));
+    localStorage.setItem("account", JSON.stringify(account));
+    localStorage.setItem("budgets", JSON.stringify(budgets));
+    localStorage.setItem("recurring", JSON.stringify(recurring));
+    localStorage.setItem("goals", JSON.stringify(goals));
+    localStorage.setItem("categories", JSON.stringify(categories));
+    localStorage.setItem("settings", JSON.stringify(settings));
+
+    // Save to Firebase if user is logged in
+    if(currentUser){
+        saveToFirebase();
+    }
+}
+
+
+/* BALANCE */
+
+function getBalance(){
+    const totalIncome = income.reduce((s,i)=>s+Number(i.amount), 0);
+    const totalExpenses = expenses.reduce((s,e)=>s+Number(e.amount), 0);
+    return Math.max(0, Number(account.startingBalance) + totalIncome - totalExpenses);
+}
+
+
+/* CURRENT MONTH DATA */
+
+function currentMonthExpenses(){
+    return expenses.filter(e=>e.date.startsWith(currentMonth));
+}
+
+function currentMonthIncome(){
+    return income.filter(i=>i.date.startsWith(currentMonth));
+}
+
+
+/* RECURRING EXPENSES */
+
+function checkRecurring(){
+    const today = new Date();
+    const todayDay = today.getDate();
+    const todayStr = today.toISOString().slice(0,10);
+
+    recurring.forEach(r=>{
+        if(r.day === todayDay){
+            const exists = expenses.some(e=>
+                e.date === todayStr &&
+                e.category === r.category &&
+                e.amount === r.amount &&
+                e.note === r.name
+            );
+
+            if(!exists){
+                expenses.push({
+                    id: Date.now() + Math.random(),
+                    amount: r.amount,
+                    category: r.category,
+                    date: todayStr,
+                    note: r.name + " (Auto-added)",
+                    payment: "Auto",
+                    tag: "Essential"
+                });
+                saveData();
+                showToast(`Auto-added: ${r.name}`);
+            }
+        }
+    });
+}
+
+
+/* DASHBOARD */
+
+function renderDashboard(){
+    const expenseData = currentMonthExpenses();
+    const incomeData = currentMonthIncome();
+
+    const totalSpend = expenseData.reduce((s,e)=>s+Number(e.amount), 0);
+    const totalInc = incomeData.reduce((s,i)=>s+Number(i.amount), 0);
+
+    const waste = expenseData
+        .filter(e=>e.tag==="Wasteful")
+        .reduce((s,e)=>s+Number(e.amount), 0);
+
+    const essential = totalSpend - waste;
+    const savingsAmt = totalInc - totalSpend;
+    const savingsPct = totalInc > 0 ? Math.round((savingsAmt/totalInc)*100) : 0;
+
+    document.getElementById("balance").textContent =
+        "₹" + getBalance().toLocaleString("en-IN");
+
+    document.getElementById("totalIncome").textContent =
+        "₹" + totalInc.toLocaleString("en-IN");
+
+    document.getElementById("totalSpend").textContent =
+        "₹" + totalSpend.toLocaleString("en-IN");
+
+    document.getElementById("savings").textContent =
+        "₹" + Math.abs(savingsAmt).toLocaleString("en-IN");
+
+    document.getElementById("savingsPercent").textContent =
+        savingsPct + "% saved";
+
+    document.getElementById("wastefulSpend").textContent =
+        "₹" + waste.toLocaleString("en-IN");
+
+    document.getElementById("essentialSpend").textContent =
+        "₹" + essential.toLocaleString("en-IN");
+
+    document.getElementById("monthName").textContent =
+        monthName(currentMonth);
+
+    const wastePct = totalSpend > 0 ? Math.round((waste/totalSpend)*100) : 0;
+    document.getElementById("wastePercent").textContent =
+        wastePct + "% of total";
+
+    renderBudget(totalSpend);
+    renderAlerts(totalSpend, waste, savingsAmt);
+    renderInsights(expenseData, totalSpend, waste, totalInc);
+    renderCharts(expenseData);
+    renderWeekly(expenseData);
+    renderComparison();
+    renderPaymentBreakdown(expenseData);
+    renderTopDays(expenseData);
+    renderGoalsDisplay();
+    renderHistory();
+}
+
+
+/* BUDGET */
+
+function renderBudget(totalSpend){
+    const budget = budgets[currentMonth] || {budget:0, wasteLimit:0};
+
+    if(!budget.budget){
+        document.getElementById("budgetStatus").textContent = "Not Set";
+        document.getElementById("budgetBar").style.width = "0%";
+        return;
+    }
+
+    const percent = Math.round((totalSpend/budget.budget)*100);
+    document.getElementById("budgetStatus").textContent =
+        "₹" + totalSpend.toLocaleString("en-IN") + " / ₹" + budget.budget.toLocaleString("en-IN");
+
+    document.getElementById("budgetBar").style.width = Math.min(percent, 100) + "%";
+
+    if(percent >= 90){
+        document.getElementById("budgetBar").classList.add("danger");
+    } else {
+        document.getElementById("budgetBar").classList.remove("danger");
+    }
+}
+
+
+/* ALERTS */
+
+function renderAlerts(totalSpend, waste, savings){
+    const budget = budgets[currentMonth] || {};
+    const alerts = [];
+
+    if(budget.budget && totalSpend >= budget.budget * 0.9){
+        alerts.push({
+            type: totalSpend > budget.budget ? "danger" : "warning",
+            message: totalSpend > budget.budget
+                ? `🚨 Budget exceeded by ₹${(totalSpend-budget.budget).toLocaleString("en-IN")}!`
+                : `⚠️ You've used ${Math.round((totalSpend/budget.budget)*100)}% of your budget.`
+        });
+    }
+
+    if(budget.wasteLimit && waste >= budget.wasteLimit * 0.8){
+        alerts.push({
+            type: waste > budget.wasteLimit ? "danger" : "warning",
+            message: waste > budget.wasteLimit
+                ? `🚨 Wasteful spending limit exceeded by ₹${(waste-budget.wasteLimit).toLocaleString("en-IN")}!`
+                : `⚠️ Wasteful spending at ${Math.round((waste/budget.wasteLimit)*100)}% of limit.`
+        });
+    }
+
+    if(savings < 0){
+        alerts.push({
+            type: "danger",
+            message: `⚠️ You spent ₹${Math.abs(savings).toLocaleString("en-IN")} more than you earned this month!`
+        });
+    }
+
+    document.getElementById("alertsContainer").innerHTML =
+        alerts.map(a=>`<div class="alert ${a.type==='danger'?'':'success'}">${a.message}</div>`).join("");
+}
+
+
+/* INSIGHTS */
+
+function renderInsights(data, total, waste, totalInc){
+    const messages = [];
+
+    if(data.length === 0){
+        messages.push("Start adding expenses to generate insights.");
+    } else {
+        const categoryTotals = {};
+        data.forEach(e=>{
+            const cat = e.category.replace(/[^\w\s]/gi, '').trim();
+            categoryTotals[cat] = (categoryTotals[cat]||0) + Number(e.amount);
+        });
+
+        const top = Object.entries(categoryTotals).sort((a,b)=>b[1]-a[1])[0];
+        if(top){
+            messages.push(`Your highest spending category is <b>${top[0]}</b> with ₹${top[1].toLocaleString("en-IN")}.`);
+        }
+
+        if(total > 0){
+            messages.push(`Wasteful spending is <b>${Math.round((waste/total)*100)}%</b> of this month's spending.`);
+        }
+
+        if(totalInc > 0){
+            const savingRate = Math.round(((totalInc-total)/totalInc)*100);
+            messages.push(`You're ${savingRate >= 0 ? 'saving' : 'overspending by'} <b>${Math.abs(savingRate)}%</b> of your income.`);
+        }
+
+        const avgDaily = Math.round(total / new Date().getDate());
+        messages.push(`Your average daily spending is <b>₹${avgDaily.toLocaleString("en-IN")}</b>.`);
+
+        const prevMonth = getPrevMonth(currentMonth);
+        const prevData = expenses.filter(e=>e.date.startsWith(prevMonth));
+        const prevTotal = prevData.reduce((s,e)=>s+Number(e.amount), 0);
+
+        if(prevTotal > 0){
+            const change = Math.round(((total-prevTotal)/prevTotal)*100);
+            messages.push(`Spending is <b>${Math.abs(change)}% ${change>0?'higher':'lower'}</b> than last month.`);
+        }
+
+        const budget = budgets[currentMonth];
+        if(budget && budget.budget){
+            const remaining = budget.budget - total;
+            if(remaining >= 0){
+                messages.push(`You have <b>₹${remaining.toLocaleString("en-IN")}</b> left in your budget.`);
+            }
+        }
+    }
+
+    document.getElementById("insights").innerHTML =
+        messages.slice(0, 6).map(m=>`<div class="insight">${m}</div>`).join("");
+}
+
+
+/* WEEKLY BREAKDOWN */
+
+function renderWeekly(data){
+    const weeks = [[], [], [], [], []];
+    data.forEach(e=>{
+        const day = new Date(e.date).getDate();
+        const week = Math.floor((day-1) / 7);
+        if(weeks[week]) weeks[week].push(e);
+    });
+
+    document.getElementById("weeklyBreakdown").innerHTML =
+        weeks.map((w, i)=>{
+            if(w.length === 0) return '';
+            const total = w.reduce((s,e)=>s+Number(e.amount), 0);
+            return `
+                <div class="week-card">
+                    <div style="display:flex;justify-content:space-between">
+                        <b>Week ${i+1}</b>
+                        <b>₹${total.toLocaleString("en-IN")}</b>
+                    </div>
+                    <small style="color:var(--muted)">${w.length} expenses</small>
+                </div>
+            `;
+        }).join("") || '<div class="empty">No data for weekly breakdown.</div>';
+}
+
+
+/* CHARTS */
+
+function renderCharts(data){
+    const totals = {};
+    categories.forEach(c=>totals[c]=0);
+    data.forEach(e=>{
+        totals[e.category] = (totals[e.category]||0) + Number(e.amount);
+    });
+
+    if(categoryChart) categoryChart.destroy();
+    categoryChart = new Chart(document.getElementById("categoryChart"), {
+        type:"doughnut",
+        data:{
+            labels: Object.keys(totals).filter(k=>totals[k]>0),
+            datasets:[{
+                data: Object.values(totals).filter(v=>v>0)
+            }]
+        },
+        options:{
+            plugins:{legend:{position:"bottom"}}
+        }
+    });
+
+    const days = new Date(
+        Number(currentMonth.slice(0,4)),
+        Number(currentMonth.slice(5)),
+        0
+    ).getDate();
+
+    const daily = Array(days).fill(0);
+    data.forEach(e=>{
+        const day = Number(e.date.slice(8)) - 1;
+        daily[day] += Number(e.amount);
+    });
+
+    if(dailyChart) dailyChart.destroy();
+    dailyChart = new Chart(document.getElementById("dailyChart"), {
+        type:"line",
+        data:{
+            labels: daily.map((_,i)=>i+1),
+            datasets:[{
+                label:"Daily Spend",
+                data: daily,
+                tension: .3,
+                fill: false
+            }]
+        },
+        options:{
+            scales:{y:{beginAtZero:true}}
+        }
+    });
+}
+
+
+/* MONTH COMPARISON */
+
+function renderComparison(){
+    const months = [...new Set(expenses.map(e=>e.date.slice(0,7)))];
+    if(!months.includes(currentMonth)) months.push(currentMonth);
+    months.sort().reverse().slice(0, 6);
+
+    const data = months.map(m=>{
+        const monthData = expenses.filter(e=>e.date.startsWith(m));
+        return monthData.reduce((s,e)=>s+Number(e.amount), 0);
+    });
+
+    if(comparisonChart) comparisonChart.destroy();
+    comparisonChart = new Chart(document.getElementById("comparisonChart"), {
+        type:"bar",
+        data:{
+            labels: months.map(m=>monthName(m).split(' ')[0]),
+            datasets:[{
+                label:"Monthly Spending",
+                data: data
+            }]
+        },
+        options:{
+            scales:{y:{beginAtZero:true}}
+        }
+    });
+}
+
+
+/* PAYMENT BREAKDOWN */
+
+function renderPaymentBreakdown(data){
+    const payments = {};
+    data.forEach(e=>{
+        payments[e.payment] = (payments[e.payment]||0) + Number(e.amount);
+    });
+
+    document.getElementById("paymentBreakdown").innerHTML =
+        Object.entries(payments).length
+        ? Object.entries(payments).map(([k,v])=>`
+            <div class="recurring-item">
+                <span><b>${k}</b></span>
+                <span><b>₹${v.toLocaleString("en-IN")}</b></span>
+            </div>
+        `).join("")
+        : '<div class="empty">No payment data yet.</div>';
+}
+
+
+/* TOP SPENDING DAYS */
+
+function renderTopDays(data){
+    const days = {};
+    data.forEach(e=>{
+        days[e.date] = (days[e.date]||0) + Number(e.amount);
+    });
+
+    const sorted = Object.entries(days).sort((a,b)=>b[1]-a[1]).slice(0, 5);
+
+    document.getElementById("topDays").innerHTML =
+        sorted.length
+        ? sorted.map(([d,amt])=>`
+            <div class="recurring-item">
+                <span><b>${new Date(d).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'})}</b></span>
+                <span><b>₹${amt.toLocaleString("en-IN")}</b></span>
+            </div>
+        `).join("")
+        : '<div class="empty">No data yet.</div>';
+}
+
+
+/* SAVINGS GOALS */
+
+function renderGoalsDisplay(){
+    document.getElementById("goalsDisplay").innerHTML =
+        goals.length
+        ? goals.map(g=>{
+            const percent = Math.min(100, Math.round((g.current/g.target)*100));
+            return `
+                <div class="goal-card">
+                    <div class="goal-header">
+                        <b>${g.name}</b>
+                        <b>₹${g.current.toLocaleString("en-IN")} / ₹${g.target.toLocaleString("en-IN")}</b>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" style="width:${percent}%"></div>
+                    </div>
+                    <small style="color:var(--muted)">${percent}% complete${g.date ? ' · Target: '+new Date(g.date).toLocaleDateString() : ''}</small>
+                </div>
+            `;
+        }).join("")
+        : '<div class="empty">No savings goals yet. <a href="#" onclick="openGoals();return false">Add one</a>.</div>';
+}
+
+function renderGoalsList(){
+    document.getElementById("goalsList").innerHTML =
+        goals.length
+        ? goals.map((g,i)=>`
+            <div class="goal-card">
+                <div class="goal-header">
+                    <div>
+                        <b>${g.name}</b><br>
+                        <small style="color:var(--muted)">₹${g.current.toLocaleString("en-IN")} / ₹${g.target.toLocaleString("en-IN")}</small>
+                    </div>
+                    <button class="delete" onclick="deleteGoal(${i})">✕</button>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar" style="width:${Math.min(100, Math.round((g.current/g.target)*100))}%"></div>
+                </div>
+            </div>
+        `).join("")
+        : '<div class="empty">No goals added yet.</div>';
+}
+
+
+/* HISTORY */
+
+function renderHistory(){
+    let months = [...new Set([
+        ...expenses.map(e=>e.date.slice(0,7)),
+        ...income.map(i=>i.date.slice(0,7))
+    ])];
+
+    if(!months.includes(currentMonth)) months.push(currentMonth);
+    months.sort().reverse();
+
+    document.getElementById("monthHistory").innerHTML =
+        months.map(m=>`
+            <button class="month-btn ${m===currentMonth?'active':''}" onclick="changeMonth('${m}')">
+                ${monthName(m)}
+            </button>
+        `).join("");
+}
+
+function changeMonth(month){
+    currentMonth = month;
+    renderDashboard();
+    renderExpenseList();
+    renderIncomeList();
+}
+
+function getPrevMonth(month){
+    let [y,m] = month.split("-").map(Number);
+    m--;
+    if(m === 0){m = 12; y--;}
+    return `${y}-${String(m).padStart(2,"0")}`;
+}
+
+
+/* TABS */
+
+function switchTab(tab){
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    event.target.classList.add("active");
+
+    if(tab === "expenses"){
+        document.getElementById("expensesTab").style.display = "block";
+        document.getElementById("incomeTab").style.display = "none";
+    } else {
+        document.getElementById("expensesTab").style.display = "none";
+        document.getElementById("incomeTab").style.display = "block";
+    }
+}
+
+
+/* EXPENSE MODAL */
+
+function openExpense(){
+    document.getElementById("expenseModal").classList.add("active");
+    document.getElementById("expenseDate").value = new Date().toISOString().slice(0,10);
+}
+
+function closeExpense(){
+    document.getElementById("expenseModal").classList.remove("active");
+}
+
+function selectTag(tag){
+    selectedTag = tag;
+    document.getElementById("essentialBtn").className =
+        tag==="Essential" ? "selected-essential" : "";
+    document.getElementById("wastefulBtn").className =
+        tag==="Wasteful" ? "selected-wasteful" : "";
+}
+
+document.getElementById("expenseForm").onsubmit = function(e){
+    e.preventDefault();
+    expenses.push({
+        id: Date.now(),
+        amount: Number(document.getElementById("amount").value),
+        category: document.getElementById("category").value,
+        date: document.getElementById("expenseDate").value,
+        note: document.getElementById("note").value,
+        payment: document.getElementById("payment").value,
+        tag: selectedTag
+    });
+    saveData();
+    closeExpense();
+    this.reset();
+    selectedTag = "Essential";
+    renderDashboard();
+    renderExpenseList();
+    showToast("Expense added!");
+};
+
+
+/* INCOME MODAL */
+
+function openIncome(){
+    document.getElementById("incomeModal").classList.add("active");
+    document.getElementById("incomeDate").value = new Date().toISOString().slice(0,10);
+}
+
+function closeIncome(){
+    document.getElementById("incomeModal").classList.remove("active");
+}
+
+document.getElementById("incomeForm").onsubmit = function(e){
+    e.preventDefault();
+    income.push({
+        id: Date.now(),
+        amount: Number(document.getElementById("incomeAmount").value),
+        source: document.getElementById("incomeSource").value,
+        date: document.getElementById("incomeDate").value,
+        note: document.getElementById("incomeNote").value
+    });
+    saveData();
+    closeIncome();
+    this.reset();
+    renderDashboard();
+    renderIncomeList();
+    showToast("Income added!");
+};
+
+
+/* BALANCE MODAL */
+
+function openBalance(){
+    document.getElementById("balanceInput").value = account.startingBalance;
+    document.getElementById("balanceModal").classList.add("active");
+}
+
+function closeBalance(){
+    document.getElementById("balanceModal").classList.remove("active");
+}
+
+function saveBalance(){
+    account.startingBalance = Number(document.getElementById("balanceInput").value);
+    saveData();
+    closeBalance();
+    renderDashboard();
+    showToast("Balance updated!");
+}
+
+
+/* RECURRING MODAL */
+
+function openRecurring(){
+    document.getElementById("recurringModal").classList.add("active");
+    renderRecurringList();
+}
+
+function closeRecurring(){
+    document.getElementById("recurringModal").classList.remove("active");
+}
+
+document.getElementById("recurringForm").onsubmit = function(e){
+    e.preventDefault();
+    recurring.push({
+        id: Date.now(),
+        name: document.getElementById("recurringName").value,
+        amount: Number(document.getElementById("recurringAmount").value),
+        category: document.getElementById("recurringCategory").value,
+        day: Number(document.getElementById("recurringDay").value)
+    });
+    saveData();
+    this.reset();
+    renderRecurringList();
+    showToast("Recurring expense added!");
+};
+
+function renderRecurringList(){
+    document.getElementById("recurringList").innerHTML =
+        recurring.length
+        ? recurring.map((r,i)=>`
+            <div class="recurring-item">
+                <div>
+                    <b>${r.name}</b><br>
+                    <small style="color:var(--muted)">₹${r.amount.toLocaleString("en-IN")} · ${r.category} · Day ${r.day}</small>
+                </div>
+                <button class="delete" onclick="deleteRecurring(${i})">✕</button>
+            </div>
+        `).join("")
+        : '<div class="empty">No recurring expenses added.</div>';
+}
+
+function deleteRecurring(index){
+    if(!confirm("Delete this recurring expense?")) return;
+    recurring.splice(index, 1);
+    saveData();
+    renderRecurringList();
+    showToast("Recurring expense deleted");
+}
+
+
+/* GOALS MODAL */
+
+function openGoals(){
+    document.getElementById("goalsModal").classList.add("active");
+    renderGoalsList();
+}
+
+function closeGoals(){
+    document.getElementById("goalsModal").classList.remove("active");
+}
+
+document.getElementById("goalsForm").onsubmit = function(e){
+    e.preventDefault();
+    goals.push({
+        id: Date.now(),
+        name: document.getElementById("goalName").value,
+        target: Number(document.getElementById("goalTarget").value),
+        current: Number(document.getElementById("goalCurrent").value),
+        date: document.getElementById("goalDate").value
+    });
+    saveData();
+    this.reset();
+    renderGoalsList();
+    renderGoalsDisplay();
+    showToast("Goal added!");
+};
+
+function deleteGoal(index){
+    if(!confirm("Delete this goal?")) return;
+    goals.splice(index, 1);
+    saveData();
+    renderGoalsList();
+    renderGoalsDisplay();
+    showToast("Goal deleted");
+}
+
+
+/* SETTINGS MODAL */
+
+function openSettings(){
+    document.getElementById("settingsModal").classList.add("active");
+    const b = budgets[currentMonth] || {budget:0, wasteLimit:0};
+    document.getElementById("budgetInput").value = b.budget;
+    document.getElementById("wasteLimitInput").value = b.wasteLimit;
+    renderCustomCategories();
+}
+
+function closeSettings(){
+    document.getElementById("settingsModal").classList.remove("active");
+}
+
+function saveBudget(){
+    budgets[currentMonth] = {
+        budget: Number(document.getElementById("budgetInput").value) || 0,
+        wasteLimit: Number(document.getElementById("wasteLimitInput").value) || 0
+    };
+    saveData();
+    renderDashboard();
+    showToast("Budget saved!");
+}
+
+
+/* EXPENSE LIST */
+
+function renderExpenseList(){
+    let data = expenses.filter(e=>e.date.startsWith(currentMonth));
+
+    const from = document.getElementById("filterFrom").value;
+    const to = document.getElementById("filterTo").value;
+    const category = document.getElementById("filterCategory").value;
+    const tag = document.getElementById("filterTag").value;
+    const search = document.getElementById("search").value.toLowerCase();
+
+    data = data.filter(e=>
+        (!from || e.date >= from) &&
+        (!to || e.date <= to) &&
+        (!category || e.category === category) &&
+        (!tag || e.tag === tag) &&
+        (!search || e.category.toLowerCase().includes(search) || (e.note||"").toLowerCase().includes(search))
+    );
+
+    data.sort((a,b)=>b.date.localeCompare(a.date));
+
+    document.getElementById("expenseCount").textContent = data.length + " expenses";
+
+    if(data.length === 0){
+        document.getElementById("expenseList").innerHTML =
+            '<div class="empty">No expenses found for ' + monthName(currentMonth) + '.</div>';
+        return;
+    }
+
+    document.getElementById("expenseList").innerHTML =
+        data.map(e=>`
+            <div class="expense">
+                <div>
+                    <b>${e.note || e.category}</b><br>
+                    <small style="color:var(--muted)">${e.date} · ${e.category}</small>
+                </div>
+                <div class="hide-mobile">
+                    <span class="badge ${e.tag==="Essential"?"essential":"wasteful"}">
+                        ${e.tag==="Essential"?"✓ Essential":"⚠ Wasteful"}
+                    </span>
+                </div>
+                <div class="hide-mobile">${e.payment}</div>
+                <div><b>₹${Number(e.amount).toLocaleString("en-IN")}</b></div>
+                <button class="delete" onclick="deleteExpense(${e.id})">✕</button>
+            </div>
+        `).join("");
+}
+
+function deleteExpense(id){
+    if(!confirm("Delete this expense?")) return;
+    expenses = expenses.filter(e=>e.id !== id);
+    saveData();
+    renderDashboard();
+    renderExpenseList();
+    showToast("Expense deleted");
+}
+
+
+/* INCOME LIST */
+
+function renderIncomeList(){
+    let data = income.filter(i=>i.date.startsWith(currentMonth));
+    data.sort((a,b)=>b.date.localeCompare(a.date));
+
+    document.getElementById("incomeCount").textContent = data.length + " income entries";
+
+    if(data.length === 0){
+        document.getElementById("incomeList").innerHTML =
+            '<div class="empty">No income recorded for ' + monthName(currentMonth) + '.</div>';
+        return;
+    }
+
+    document.getElementById("incomeList").innerHTML =
+        data.map(i=>`
+            <div class="income-item">
+                <div>
+                    <b>${i.note || i.source}</b><br>
+                    <small style="color:var(--muted)">${i.date} · ${i.source}</small>
+                </div>
+                <div><b class="green">+₹${Number(i.amount).toLocaleString("en-IN")}</b></div>
+                <div></div>
+                <button class="delete" onclick="deleteIncome(${i.id})">✕</button>
+            </div>
+        `).join("");
+}
+
+function deleteIncome(id){
+    if(!confirm("Delete this income entry?")) return;
+    income = income.filter(i=>i.id !== id);
+    saveData();
+    renderDashboard();
+    renderIncomeList();
+    showToast("Income deleted");
+}
+
+
+/* FILTERS */
+
+["filterFrom", "filterTo", "filterCategory", "filterTag", "search"].forEach(id=>{
+    document.getElementById(id).addEventListener("input", renderExpenseList);
+});
+
+
+/* EXPORT CSV */
+
+function exportCSV(){
+    const data = currentMonthExpenses();
+    let csv = "Date,Amount,Category,Tag,Payment,Note\n";
+    data.forEach(e=>{
+        csv += `${e.date},${e.amount},${e.category},${e.tag},${e.payment},"${e.note}"\n`;
+    });
+    const blob = new Blob([csv], {type:"text/csv"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `money-tracker-${currentMonth}.csv`;
+    a.click();
+    showToast("CSV exported!");
+}
+
+
+/* EXPORT PDF */
+
+function exportPDF(){
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF();
+    const data = currentMonthExpenses();
+    const total = data.reduce((s,e)=>s+Number(e.amount), 0);
+    const waste = data.filter(e=>e.tag==="Wasteful").reduce((s,e)=>s+Number(e.amount), 0);
+
+    doc.setFontSize(20);
+    doc.text("Money Tracker Pro Report", 15, 20);
+    doc.setFontSize(11);
+    doc.text("Month: " + monthName(currentMonth), 15, 30);
+    doc.text("Total Spend: ₹" + total.toLocaleString("en-IN"), 15, 40);
+    doc.text("Wasteful Spend: ₹" + waste.toLocaleString("en-IN"), 15, 50);
+
+    let y = 65;
+    data.forEach(e=>{
+        if(y > 280){
+            doc.addPage();
+            y = 20;
+        }
+        doc.text(`${e.date} | ${e.category} | ${e.tag} | ₹${e.amount} | ${e.note||"-"}`, 15, y);
+        y += 8;
+    });
+
+    doc.save(`money-tracker-${currentMonth}.pdf`);
+    showToast("PDF exported!");
+}
+
+
+/* BACKUP/RESTORE */
+
+function backupData(){
+    const backup = {
+        expenses,
+        income,
+        account,
+        budgets,
+        recurring,
+        goals,
+        categories,
+        settings,
+        exportDate: new Date().toISOString()
+    };
+
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `money-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    showToast("Backup downloaded!");
+}
+
+function restoreData(event){
+    const file = event.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e){
+        try{
+            const backup = JSON.parse(e.target.result);
+
+            if(!confirm("This will replace all your current data. Continue?")) return;
+
+            expenses = backup.expenses || [];
+            income = backup.income || [];
+            account = backup.account || {startingBalance:0};
+            budgets = backup.budgets || {};
+            recurring = backup.recurring || [];
+            goals = backup.goals || [];
+            categories = backup.categories || [...defaultCategories];
+            settings = backup.settings || {theme:"light"};
+
+            saveData();
+            applyTheme();
+            populateCategories();
+            renderDashboard();
+            renderExpenseList();
+            renderIncomeList();
+
+            showToast("Data restored successfully!");
+        } catch(err){
+            alert("Invalid backup file!");
+        }
+    };
+    reader.readAsText(file);
+}
+
+
+/* TOAST */
+
+function showToast(message){
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    setTimeout(()=>toast.classList.remove("show"), 2000);
+}
+
+
+/* INITIALIZE */
+
+init();
+
+</script>
+
+</body>
+</html>
