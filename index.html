@@ -572,7 +572,6 @@ label{
         <button onclick="openRecurring()" id="recurringBtn" style="display:none">🔄 Recurring</button>
         <button onclick="openGoals()" id="goalsBtn" style="display:none">🎯 Goals</button>
         <button onclick="openSettings()" id="settingsBtn" style="display:none">⚙️</button>
-        <button onclick="syncNow()" id="syncBtn" style="display:none" title="Sync latest cloud data">↻</button>
         <button onclick="toggleDark()" id="themeBtn">🌙</button>
         <button onclick="logout()" id="logoutBtn" style="display:none;background:var(--danger);color:white">Logout</button>
     </div>
@@ -1333,7 +1332,6 @@ if(auth){
             document.getElementById("recurringBtn").style.display = "inline-block";
             document.getElementById("goalsBtn").style.display = "inline-block";
             document.getElementById("settingsBtn").style.display = "inline-block";
-            document.getElementById("syncBtn").style.display = "inline-block";
             document.getElementById("logoutBtn").style.display = "inline-block";
 
             loadUserData();
@@ -1358,7 +1356,6 @@ if(auth){
             document.getElementById("recurringBtn").style.display = "none";
             document.getElementById("goalsBtn").style.display = "none";
             document.getElementById("settingsBtn").style.display = "none";
-            document.getElementById("syncBtn").style.display = "none";
             document.getElementById("logoutBtn").style.display = "none";
         }
     });
@@ -1494,16 +1491,6 @@ function hasLocalUserData(){
         Object.keys(budgets).length > 0 || recurring.length > 0 ||
         goals.length > 0 || categories.some(category => !defaultCategories.includes(category)) ||
         Number(account.startingBalance) !== 0;
-}
-
-function syncNow(){
-    if(!currentUser){
-        showToast("Please login first");
-        return;
-    }
-
-    database.goOnline();
-    loadUserData(true);
 }
 
 // Setup realtime sync
