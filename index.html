@@ -886,6 +886,7 @@ Add Expense
 </div>
 
 <form id="incomeForm">
+<input type="hidden" id="editingIncomeId">
 <div class="form-grid">
 
 <div>
@@ -917,7 +918,7 @@ Add Expense
 
 <div class="full">
 <button class="success" style="width:100%;padding:12px" type="submit">
-Add Income
+<span id="incomeSubmitText">Add Income</span>
 </button>
 </div>
 
@@ -1448,6 +1449,7 @@ function loadUserData(showMessage = true){
     if(!currentUser || !database) return;
 
     const userRef = database.ref('users/' + currentUser.uid);
+    const localDataOwner = localStorage.getItem("dailyTrackerUserId");
 
     userRef.once('value').then(snapshot => {
         const data = snapshot.val();
@@ -1470,14 +1472,28 @@ function loadUserData(showMessage = true){
             goals = data.goals || [];
             categories = data.categories || [...defaultCategories];
             settings = data.settings || {theme: "light"};
+            localStorage.setItem("dailyTrackerUserId", currentUser.uid);
 
             init();
             if(showMessage) showToast("☁️ Data synced from cloud");
         } else {
-            init();
-            if(hasLocalUserData()){
+            // Never copy another user's browser data into a new account.
+            if(localDataOwner === currentUser.uid && hasLocalUserData()){
+                init();
                 saveToFirebase();
                 if(showMessage) showToast("☁️ Your local data is being uploaded");
+            } else {
+                expenses = [];
+                income = [];
+                account = {startingBalance: 0};
+                budgets = {};
+                recurring = [];
+                goals = [];
+                categories = [...defaultCategories];
+                settings = {theme: "light", budgetAlerts: true};
+                localStorage.setItem("dailyTrackerUserId", currentUser.uid);
+                saveData();
+                init();
             }
         }
     }).catch(error => {
@@ -2211,6 +2227,8 @@ document.getElementById("expenseForm").onsubmit = function(e){
 function openIncome(){
     document.getElementById("incomeModal").classList.add("active");
     document.getElementById("incomeDate").value = new Date().toISOString().slice(0,10);
+    document.getElementById("editingIncomeId").value = "";
+    document.getElementById("incomeSubmitText").textContent = "Add Income";
 }
 
 function closeIncome(){
@@ -2219,19 +2237,27 @@ function closeIncome(){
 
 document.getElementById("incomeForm").onsubmit = function(e){
     e.preventDefault();
-    income.push({
-        id: Date.now(),
+    const editingId = Number(document.getElementById("editingIncomeId").value);
+    const entry = {
+        id: editingId || Date.now(),
         amount: Number(document.getElementById("incomeAmount").value),
         source: document.getElementById("incomeSource").value,
         date: document.getElementById("incomeDate").value,
         note: document.getElementById("incomeNote").value
-    });
+    };
+    if(editingId){
+        income = income.map(item=>item.id === editingId ? entry : item);
+    } else {
+        income.push(entry);
+    }
     saveData();
     closeIncome();
     this.reset();
+    document.getElementById("editingIncomeId").value = "";
+    document.getElementById("incomeSubmitText").textContent = "Add Income";
     renderDashboard();
     renderIncomeList();
-    showToast("Income added!");
+    showToast(editingId ? "Income updated!" : "Income added!");
 };
 
 
@@ -2448,9 +2474,22 @@ function renderIncomeList(){
                 </div>
                 <div><b class="green">+₹${Number(i.amount).toLocaleString("en-IN")}</b></div>
                 <div></div>
+                <button class="secondary" onclick="editIncome(${i.id})">Edit</button>
                 <button class="delete" onclick="deleteIncome(${i.id})">✕</button>
             </div>
         `).join("");
+}
+
+function editIncome(id){
+    const entry = income.find(item=>item.id === id);
+    if(!entry) return;
+    document.getElementById("editingIncomeId").value = entry.id;
+    document.getElementById("incomeAmount").value = entry.amount;
+    document.getElementById("incomeSource").value = entry.source;
+    document.getElementById("incomeDate").value = entry.date;
+    document.getElementById("incomeNote").value = entry.note || "";
+    document.getElementById("incomeSubmitText").textContent = "Update Income";
+    document.getElementById("incomeModal").classList.add("active");
 }
 
 function deleteIncome(id){
