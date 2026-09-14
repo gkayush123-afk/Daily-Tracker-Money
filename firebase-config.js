@@ -1,9 +1,9 @@
 const firebaseConfig = {
-    apiKey: "AIzaSyAv2K1nGCFSjFcLNZW2KehgHYTyYMA_DlA",
-    authDomain: "daily-money-tracker-1170a.firebaseapp.com",
-    projectId: "daily-money-tracker-1170a",
-    storageBucket: "daily-money-tracker-1170a.firebasestorage.app",
-    messagingSenderId: "967789242622",
-    appId: "1:967789242622:web:ec54d8ae85090b693a9daf",
-    databaseURL: "https://daily-money-tracker-1170a-default-rtdb.firebaseio.com"
+    apiKey: "AIzaSyDEMQ4z2NzJPmj6Bv8RKZxqHJS5SvWW0ho",
+    authDomain: "daily-money-tracke.firebaseapp.com",
+    projectId: "daily-money-tracke",
+    storageBucket: "daily-money-tracke.firebasestorage.app",
+    messagingSenderId: "681492463603",
+    appId: "1:681492463603:web:3758ed848427454c521c86",
+    databaseURL: "https://daily-money-tracke-default-rtdb.firebaseio.com"
 };
