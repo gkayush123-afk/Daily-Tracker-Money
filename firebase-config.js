@@ -1,5 +1,5 @@
 const firebaseConfig = {
-    apiKey: "AIzaSyAv2K1nGCFSjFcLNZW2KehgHYTyYMA_DIA",
+    apiKey: "AIzaSyAv2K1nGCFSjFcLNZW2KehgHYTyYMA_DlA",
     authDomain: "daily-money-tracker-1170a.firebaseapp.com",
     projectId: "daily-money-tracker-1170a",
     storageBucket: "daily-money-tracker-1170a.firebasestorage.app",
