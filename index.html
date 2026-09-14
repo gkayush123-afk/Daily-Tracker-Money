@@ -1461,11 +1461,12 @@ function loadUserData(){
 function setupRealtimeSync(){
     if(!currentUser || !database) return;
 
+    database.goOnline();
     const userRef = database.ref('users/' + currentUser.uid);
 
     userRef.on('value', snapshot => {
         const data = snapshot.val();
-        if(data && !isSaving){
+        if(data){
             expenses = data.expenses || [];
             income = data.income || [];
             account = data.account || {startingBalance: 0};
@@ -1474,6 +1475,15 @@ function setupRealtimeSync(){
             goals = data.goals || [];
             categories = data.categories || [...defaultCategories];
             settings = data.settings || {theme: "light"};
+
+            localStorage.setItem("expenses", JSON.stringify(expenses));
+            localStorage.setItem("income", JSON.stringify(income));
+            localStorage.setItem("account", JSON.stringify(account));
+            localStorage.setItem("budgets", JSON.stringify(budgets));
+            localStorage.setItem("recurring", JSON.stringify(recurring));
+            localStorage.setItem("goals", JSON.stringify(goals));
+            localStorage.setItem("categories", JSON.stringify(categories));
+            localStorage.setItem("settings", JSON.stringify(settings));
 
             renderDashboard();
             renderExpenseList();
@@ -1507,6 +1517,7 @@ function saveToFirebase(){
     }).catch(error => {
         isSaving = false;
         console.error("Save error:", error);
+        showToast("⚠️ Cloud sync failed. Check your connection.");
     });
 }
 
