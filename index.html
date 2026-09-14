@@ -1155,7 +1155,7 @@ Download or restore your complete data.
         <div class="form-grid">
             <div class="full">
                 <label>Email</label>
-                <input type="email" id="loginEmail" required placeholder="your@email.com" autocomplete="off">
+                <input type="email" id="loginEmail" required placeholder="your@email.com" autocomplete="off" inputmode="email">
             </div>
             <div class="full">
                 <label>Password</label>
@@ -1219,7 +1219,8 @@ let app, auth, database, currentUser = null;
 try {
     app = firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
-    auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+    auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+        .catch(error => console.warn("Session persistence unavailable:", error));
     database = firebase.database();
     console.log("Firebase initialized successfully");
 } catch (error) {
@@ -1366,7 +1367,7 @@ function switchAuthTab(tab){
 // Login
 function loginUser(e){
     e.preventDefault();
-    const email = document.getElementById("loginEmail").value;
+    const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
 
     if(!auth){
@@ -2521,7 +2522,7 @@ function showToast(message){
     const toast = document.getElementById("toast");
     toast.textContent = message;
     toast.classList.add("show");
-    setTimeout(()=>toast.classList.remove("show"), 2000);
+    setTimeout(()=>toast.classList.remove("show"), 4000);
 }
 
 
