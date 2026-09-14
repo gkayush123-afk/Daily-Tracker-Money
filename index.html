@@ -1468,8 +1468,22 @@ function loadUserData(showMessage = true){
             if(showMessage) showToast("☁️ Data synced from cloud");
         } else {
             init();
+            if(hasLocalUserData()){
+                saveToFirebase();
+                if(showMessage) showToast("☁️ Your local data is being uploaded");
+            }
         }
+    }).catch(error => {
+        console.error("Load error:", error);
+        if(showMessage) showToast("⚠️ Cloud data could not be loaded");
     });
+}
+
+function hasLocalUserData(){
+    return expenses.length > 0 || income.length > 0 ||
+        Object.keys(budgets).length > 0 || recurring.length > 0 ||
+        goals.length > 0 || categories.some(category => !defaultCategories.includes(category)) ||
+        Number(account.startingBalance) !== 0;
 }
 
 function syncNow(){
