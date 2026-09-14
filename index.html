@@ -1454,7 +1454,17 @@ function loadUserData(showMessage = true){
 
     userRef.once('value').then(snapshot => {
         const data = snapshot.val();
-        if(data){
+        const cloudHasUserData = data && (
+            (data.expenses && data.expenses.length > 0) ||
+            (data.income && data.income.length > 0) ||
+            (data.recurring && data.recurring.length > 0) ||
+            (data.goals && data.goals.length > 0) ||
+            (data.budgets && Object.keys(data.budgets).length > 0) ||
+            (data.categories && data.categories.length > defaultCategories.length) ||
+            (data.account && Number(data.account.startingBalance) !== 0)
+        );
+
+        if(data && cloudHasUserData){
             expenses = data.expenses || [];
             income = data.income || [];
             account = data.account || {startingBalance: 0};
