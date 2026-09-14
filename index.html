@@ -1215,6 +1215,7 @@ Download or restore your complete data.
 
 // Initialize Firebase
 let app, auth, database, currentUser = null;
+let syncInterval = null;
 
 try {
     app = firebase.initializeApp(firebaseConfig);
@@ -1332,8 +1333,16 @@ if(auth){
 
             loadUserData();
             setupRealtimeSync();
+            clearInterval(syncInterval);
+            syncInterval = setInterval(() => {
+                if(currentUser && document.visibilityState === "visible"){
+                    loadUserData(false);
+                }
+            }, 5000);
         } else {
             currentUser = null;
+            clearInterval(syncInterval);
+            syncInterval = null;
             document.getElementById("authModal").classList.add("active");
             document.getElementById("mainContainer").style.display = "none";
             document.getElementById("userEmail").style.display = "none";
@@ -1432,7 +1441,7 @@ function logout(){
 }
 
 // Load user data from Firebase
-function loadUserData(){
+function loadUserData(showMessage = true){
     if(!currentUser || !database) return;
 
     const userRef = database.ref('users/' + currentUser.uid);
@@ -1450,7 +1459,7 @@ function loadUserData(){
             settings = data.settings || {theme: "light"};
 
             init();
-            showToast("☁️ Data synced from cloud");
+            if(showMessage) showToast("☁️ Data synced from cloud");
         } else {
             init();
         }
