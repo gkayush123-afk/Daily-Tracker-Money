@@ -9,6 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1207,17 +1208,6 @@ Download or restore your complete data.
 
 
 <script>
-
-// Firebase Configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyBw8K7mYxample_REPLACE_WITH_YOUR_KEY",
-    authDomain: "money-tracker-example.firebaseapp.com",
-    projectId: "money-tracker-example",
-    storageBucket: "money-tracker-example.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdef123456",
-    databaseURL: "https://money-tracker-example-default-rtdb.firebaseio.com"
-};
 
 // Initialize Firebase
 let app, auth, database, currentUser = null;
