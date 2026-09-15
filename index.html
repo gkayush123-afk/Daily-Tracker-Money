@@ -1219,12 +1219,13 @@ Download or restore your complete data.
 
 // Initialize Firebase
 let app, auth, database, currentUser = null;
+let authReady = Promise.resolve();
 let syncInterval = null;
 
 try {
     app = firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
-    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    authReady = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
         .catch(error => console.warn("Login persistence unavailable:", error));
     database = firebase.database();
     console.log("Firebase initialized successfully");
@@ -1319,7 +1320,7 @@ document.getElementById("quickAddForm").onsubmit = function(e){
 
 // Auth state listener
 if(auth){
-    auth.onAuthStateChanged(user => {
+    authReady.then(() => auth.onAuthStateChanged(user => {
         if(user){
             currentUser = user;
             document.getElementById("authModal").classList.remove("active");
@@ -1359,7 +1360,7 @@ if(auth){
             document.getElementById("settingsBtn").style.display = "none";
             document.getElementById("logoutBtn").style.display = "none";
         }
-    });
+    }));
 }
 
 // Switch auth tabs
