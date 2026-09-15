@@ -401,6 +401,14 @@ label{
     color:var(--muted);
 }
 
+.auth-error{
+    display:none;
+    color:var(--danger);
+    text-align:center;
+    font-weight:bold;
+    margin-top:10px;
+}
+
 .goal-card{
     background:var(--bg);
     padding:15px;
@@ -1166,6 +1174,11 @@ Download or restore your complete data.
                 <input type="password" id="loginPassword" required placeholder="••••••••" autocomplete="off">
             </div>
             <div class="full">
+                <p class="auth-error" id="loginError" role="alert">
+                    Oops! Password galat hai yaar 😅 Try again.
+                </p>
+            </div>
+            <div class="full">
                 <button class="primary" type="submit" style="width:100%;padding:12px">
                     🔐 Login
                 </button>
@@ -1383,6 +1396,8 @@ function loginUser(e){
     e.preventDefault();
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
+    const loginError = document.getElementById("loginError");
+    loginError.style.display = "none";
 
     if(!auth){
         showToast("⚠️ Firebase not configured");
@@ -1392,10 +1407,11 @@ function loginUser(e){
     auth.signInWithEmailAndPassword(email, password)
         .then(userCredential => {
             document.getElementById("loginPassword").value = "";
+            loginError.style.display = "none";
             showToast("✅ Logged in successfully!");
         })
-        .catch(error => {
-            showToast("❌ " + error.message);
+        .catch(() => {
+            loginError.style.display = "block";
         });
 }
 
