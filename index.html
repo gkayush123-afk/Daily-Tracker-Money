@@ -409,6 +409,21 @@ label{
     margin-top:10px;
 }
 
+.auth-help{
+    display:flex;
+    justify-content:center;
+    gap:14px;
+    margin-top:12px;
+}
+
+.auth-help button{
+    border:none;
+    background:none;
+    color:var(--primary);
+    cursor:pointer;
+    font-size:13px;
+}
+
 .goal-card{
     background:var(--bg);
     padding:15px;
@@ -1183,6 +1198,10 @@ Download or restore your complete data.
                     🔐 Login
                 </button>
             </div>
+            <div class="full auth-help">
+                <button type="button" onclick="forgotPassword()">Forgot Password?</button>
+                <button type="button" onclick="forgotEmail()">Forgot ID?</button>
+            </div>
         </div>
     </form>
 </div>
@@ -1413,6 +1432,32 @@ function loginUser(e){
         .catch(() => {
             loginError.style.display = "block";
         });
+}
+
+function forgotPassword(){
+    if(!auth){
+        showToast("⚠️ Firebase not configured");
+        return;
+    }
+
+    const email = document.getElementById("loginEmail").value.trim();
+    if(!email){
+        showToast("Pehle apna Gmail ID enter karo");
+        document.getElementById("loginEmail").focus();
+        return;
+    }
+
+    auth.sendPasswordResetEmail(email)
+        .then(() => {
+            showToast("📩 Gmail par password reset link bhej diya hai");
+        })
+        .catch(() => {
+            showToast("❌ Is Gmail ID par account nahi mila");
+        });
+}
+
+function forgotEmail(){
+    showToast("Apna Gmail inbox check karo ya wahi email try karo jisse account banaya tha");
 }
 
 // Signup
