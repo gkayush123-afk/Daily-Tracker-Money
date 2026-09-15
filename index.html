@@ -1224,8 +1224,8 @@ let syncInterval = null;
 try {
     app = firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
-    auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
-        .catch(error => console.warn("Session persistence unavailable:", error));
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .catch(error => console.warn("Login persistence unavailable:", error));
     database = firebase.database();
     console.log("Firebase initialized successfully");
 } catch (error) {
