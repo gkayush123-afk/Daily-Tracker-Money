@@ -1109,6 +1109,14 @@ Add Goal
 <button class="close" onclick="closeSettings()">✕</button>
 </div>
 
+<h3>👤 Profile Name</h3>
+<div style="display:flex;gap:10px;margin-top:10px">
+<input type="text" id="profileNameInput" placeholder="Your name" style="flex:1">
+<button class="primary" onclick="saveProfileName()">Save</button>
+</div>
+
+<hr style="margin:25px 0;border:none;border-top:1px solid var(--border)">
+
 <h3>💰 Budget Settings</h3>
 
 <div class="form-grid" style="margin-top:10px">
@@ -1357,6 +1365,8 @@ JSON.parse(localStorage.getItem("settings")) || {
     budgetAlerts:true
 };
 
+let profileName = localStorage.getItem("dailyTrackerProfileName") || "";
+
 let deviceTheme = localStorage.getItem("dailyTrackerTheme") || "system";
 
 let selectedTag="Essential";
@@ -1426,6 +1436,7 @@ function activateSession(slot){
     database = authSlots[slot].database;
     auth = activeAuth;
     currentUser = user;
+    profileName = user.displayName || "";
     if(previousUserId && previousUserId !== user.uid){
         expenses = [];
         income = [];
@@ -1439,7 +1450,7 @@ function activateSession(slot){
     }
     document.getElementById("authModal").classList.remove("active");
     document.getElementById("mainContainer").style.display = "block";
-    document.getElementById("userEmail").textContent = user.displayName || user.email || "User";
+    document.getElementById("userEmail").textContent = profileName || user.email || "User";
     document.getElementById("userEmail").style.display = "inline-block";
     ["incomeBtn", "balanceBtn", "recurringBtn", "goalsBtn", "settingsBtn", "switchAccountBtn", "logoutBtn"]
         .forEach(id => document.getElementById(id).style.display = "inline-block");
@@ -1654,7 +1665,7 @@ function loadUserData(showMessage = true){
     userRef.once('value').then(snapshot => {
         if(requestVersion !== sessionVersion || !currentUser || currentUser.uid !== userId) return;
         const data = snapshot.val();
-        const cloudHasUserData = data && ["expenses", "income", "account", "budgets", "recurring", "goals", "categories", "settings"]
+        const cloudHasUserData = data && ["expenses", "income", "account", "budgets", "recurring", "goals", "categories", "settings", "profile"]
             .some(key => Object.prototype.hasOwnProperty.call(data, key));
 
         if(data && cloudHasUserData){
@@ -1667,6 +1678,9 @@ function loadUserData(showMessage = true){
             categories = Array.isArray(data.categories) ? data.categories : Object.values(data.categories || {});
             if(!categories.length) categories = [...defaultCategories];
             settings = data.settings || {theme: "system", budgetAlerts: true};
+            profileName = (data.profile && data.profile.name) || sessionUser.displayName || "";
+            localStorage.setItem("dailyTrackerProfileName", profileName);
+            document.getElementById("userEmail").textContent = profileName || sessionUser.email || "User";
             localStorage.setItem("dailyTrackerUserId", userId);
 
             init();
@@ -1800,6 +1814,7 @@ function saveToFirebase(){
             recurring: mergeSyncedRecords(remote.recurring, recurring),
             goals: mergeSyncedRecords(remote.goals, goals),
             categories: [...new Set([...(remote.categories || []), ...categories])],
+            profile: {...(remote.profile || {}), name: profileName},
             settings,
             lastUpdated: Date.now()
         };
@@ -2629,10 +2644,27 @@ function deleteGoal(index){
 
 function openSettings(){
     document.getElementById("settingsModal").classList.add("active");
+    document.getElementById("profileNameInput").value = profileName;
     const b = budgets[currentMonth] || {budget:0, wasteLimit:0};
     document.getElementById("budgetInput").value = b.budget;
     document.getElementById("wasteLimitInput").value = b.wasteLimit;
     renderCustomCategories();
+}
+
+function saveProfileName(){
+    const name = document.getElementById("profileNameInput").value.trim();
+    if(!name){
+        showToast("Please enter your name");
+        return;
+    }
+    profileName = name;
+    localStorage.setItem("dailyTrackerProfileName", profileName);
+    if(currentUser && currentUser.updateProfile){
+        currentUser.updateProfile({displayName: profileName}).catch(() => {});
+    }
+    document.getElementById("userEmail").textContent = profileName;
+    saveData();
+    showToast("Profile name saved!");
 }
 
 function closeSettings(){
