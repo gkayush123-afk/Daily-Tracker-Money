@@ -1302,9 +1302,11 @@ JSON.parse(localStorage.getItem("goals")) || [];
 
 let settings =
 JSON.parse(localStorage.getItem("settings")) || {
-    theme:"light",
+    theme:"system",
     budgetAlerts:true
 };
+
+let deviceTheme = localStorage.getItem("dailyTrackerTheme") || "system";
 
 let selectedTag="Essential";
 
@@ -1533,7 +1535,7 @@ function loadUserData(showMessage = true){
             recurring = data.recurring || [];
             goals = data.goals || [];
             categories = data.categories || [...defaultCategories];
-            settings = data.settings || {theme: "light"};
+            settings = data.settings || {theme: "system", budgetAlerts: true};
             localStorage.setItem("dailyTrackerUserId", currentUser.uid);
 
             init();
@@ -1552,7 +1554,7 @@ function loadUserData(showMessage = true){
                 recurring = [];
                 goals = [];
                 categories = [...defaultCategories];
-                settings = {theme: "light", budgetAlerts: true};
+                settings = {theme: "system", budgetAlerts: true};
                 localStorage.setItem("dailyTrackerUserId", currentUser.uid);
                 saveData();
                 init();
@@ -1588,7 +1590,7 @@ function setupRealtimeSync(){
             recurring = data.recurring || [];
             goals = data.goals || [];
             categories = data.categories || [...defaultCategories];
-            settings = data.settings || {theme: "light"};
+            settings = data.settings || {theme: "system", budgetAlerts: true};
 
             localStorage.setItem("expenses", JSON.stringify(expenses));
             localStorage.setItem("income", JSON.stringify(income));
@@ -1622,6 +1624,15 @@ document.addEventListener("visibilitychange", () => {
 
 let isSaving = false;
 
+function mergeSyncedRecords(remoteRecords, localRecords){
+    const records = new Map();
+    [...(remoteRecords || []), ...(localRecords || [])].forEach(record => {
+        const key = record && record.id !== undefined ? String(record.id) : JSON.stringify(record);
+        records.set(key, record);
+    });
+    return Array.from(records.values());
+}
+
 // Save to Firebase
 function saveToFirebase(){
     if(!currentUser || !database) return;
@@ -1630,16 +1641,20 @@ function saveToFirebase(){
 
     const userRef = database.ref('users/' + currentUser.uid);
 
-    userRef.set({
-        expenses,
-        income,
-        account,
-        budgets,
-        recurring,
-        goals,
-        categories,
-        settings,
-        lastUpdated: Date.now()
+    userRef.transaction(remoteData => {
+        const remote = remoteData || {};
+        return {
+            ...remote,
+            expenses: mergeSyncedRecords(remote.expenses, expenses),
+            income: mergeSyncedRecords(remote.income, income),
+            account: {...(remote.account || {}), ...account},
+            budgets: {...(remote.budgets || {}), ...budgets},
+            recurring: mergeSyncedRecords(remote.recurring, recurring),
+            goals: mergeSyncedRecords(remote.goals, goals),
+            categories: [...new Set([...(remote.categories || []), ...categories])],
+            settings,
+            lastUpdated: Date.now()
+        };
     }).then(() => {
         isSaving = false;
     }).catch(error => {
@@ -1672,15 +1687,29 @@ function populateQuickCategory(){
 /* THEME */
 
 function applyTheme(){
-    document.documentElement.setAttribute("data-theme", settings.theme);
-    document.getElementById("themeBtn").textContent = settings.theme==="dark"?"☀️":"🌙";
+    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    const activeTheme = deviceTheme === "system" ? systemTheme : deviceTheme;
+    document.documentElement.setAttribute("data-theme", activeTheme);
+    document.getElementById("themeBtn").textContent = activeTheme === "dark" ? "☀️" : "🌙";
+    document.getElementById("themeBtn").title = activeTheme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+}
+
+const systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+const updateSystemTheme = () => {
+    if(deviceTheme === "system") applyTheme();
+};
+if(systemThemeQuery.addEventListener){
+    systemThemeQuery.addEventListener("change", updateSystemTheme);
+} else {
+    systemThemeQuery.addListener(updateSystemTheme);
 }
 
 function toggleDark(){
-    settings.theme = settings.theme==="dark"?"light":"dark";
+    const activeTheme = document.documentElement.getAttribute("data-theme");
+    deviceTheme = activeTheme === "dark" ? "light" : "dark";
+    localStorage.setItem("dailyTrackerTheme", deviceTheme);
     applyTheme();
-    saveData();
-    showToast("Theme changed to " + settings.theme + " mode");
+    showToast("Theme changed to " + deviceTheme + " mode");
 }
 
 
@@ -1689,17 +1718,33 @@ function toggleDark(){
 function populateCategories(){
     const selects = ["category", "filterCategory", "recurringCategory"];
     selects.forEach(id=>{
-        document.getElementById(id).innerHTML =
+        const select = document.getElementById(id);
+        const selectedValue = select.value;
+        select.innerHTML =
         '<option value="">Select Category</option>' +
         categories.map(c=>`<option>${c}</option>`).join("");
+        if(selectedValue){
+            if(!categories.includes(selectedValue)){
+                select.add(new Option(selectedValue, selectedValue));
+            }
+            select.value = selectedValue;
+        }
     });
     populateQuickCategory();
 }
 
 function populateQuickCategory(){
-    document.getElementById("quickCategory").innerHTML =
+    const select = document.getElementById("quickCategory");
+    const selectedValue = select.value;
+    select.innerHTML =
         '<option value="">Select...</option>' +
         categories.map(c=>`<option>${c}</option>`).join("");
+    if(selectedValue){
+        if(!categories.includes(selectedValue)){
+            select.add(new Option(selectedValue, selectedValue));
+        }
+        select.value = selectedValue;
+    }
 }
 
 function addCategory(){
@@ -2265,10 +2310,11 @@ function selectTag(tag){
 
 document.getElementById("expenseForm").onsubmit = function(e){
     e.preventDefault();
+    const selectedCategory = document.getElementById("category").value;
     expenses.push({
         id: Date.now(),
         amount: Number(document.getElementById("amount").value),
-        category: document.getElementById("category").value,
+        category: selectedCategory,
         date: document.getElementById("expenseDate").value,
         note: document.getElementById("note").value,
         payment: document.getElementById("payment").value,
@@ -2277,6 +2323,7 @@ document.getElementById("expenseForm").onsubmit = function(e){
     saveData();
     closeExpense();
     this.reset();
+    document.getElementById("category").value = selectedCategory;
     selectedTag = "Essential";
     renderDashboard();
     renderExpenseList();
