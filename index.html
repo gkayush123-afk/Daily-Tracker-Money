@@ -346,6 +346,17 @@ label{
     display:flex;
 }
 
+.auth-loading{
+    position:fixed;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:var(--bg);
+    color:var(--muted);
+    z-index:200;
+}
+
 .modal-content{
     background:var(--surface);
     width:500px;
@@ -1156,10 +1167,12 @@ Download or restore your complete data.
 
 <div class="toast" id="toast"></div>
 
+<div class="auth-loading" id="authLoading">Loading your account...</div>
+
 
 <!-- LOGIN/SIGNUP MODAL -->
 
-<div class="modal active" id="authModal">
+<div class="modal" id="authModal">
 <div class="modal-content">
 
 <div style="text-align:center;margin-bottom:30px">
@@ -1355,6 +1368,7 @@ document.getElementById("quickAddForm").onsubmit = function(e){
 // Auth state listener
 if(auth){
     authReady.then(() => auth.onAuthStateChanged(user => {
+        document.getElementById("authLoading").style.display = "none";
         if(user){
             currentUser = user;
             document.getElementById("authModal").classList.remove("active");
@@ -1395,6 +1409,9 @@ if(auth){
             document.getElementById("logoutBtn").style.display = "none";
         }
     }));
+} else {
+    document.getElementById("authLoading").style.display = "none";
+    document.getElementById("authModal").classList.add("active");
 }
 
 // Switch auth tabs
