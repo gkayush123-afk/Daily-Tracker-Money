@@ -627,9 +627,14 @@ label{
     <div class="card" style="background:linear-gradient(135deg, var(--primary), var(--success));color:white;padding:20px;margin-bottom:20px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px">
             <h3 style="margin:0">⚡ Quick Add Expense</h3>
-            <button class="success" onclick="openIncome()" style="padding:10px 20px;font-weight:bold">
-                💵 + Add Income
-            </button>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button style="background:white;color:var(--primary);padding:10px 20px;font-weight:bold;border:none;border-radius:8px;cursor:pointer" onclick="openExpense()">
+                    🧾 Add Expense
+                </button>
+                <button class="success" onclick="openIncome()" style="padding:10px 20px;font-weight:bold">
+                    💵 + Add Income
+                </button>
+            </div>
         </div>
         <form id="quickAddForm" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
             <div style="flex:1;min-width:120px">
