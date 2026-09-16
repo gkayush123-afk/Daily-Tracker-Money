@@ -57,6 +57,10 @@ body{
     transition:background .3s, color .3s;
 }
 
+body.auth-pending #authModal{
+    display:none !important;
+}
+
 header{
     background:var(--surface);
     padding:18px 30px;
@@ -594,7 +598,7 @@ label{
 </style>
 </head>
 
-<body>
+<body class="auth-pending">
 
 <header>
     <div class="logo">💰 Money Tracker Pro</div>
@@ -1369,6 +1373,7 @@ document.getElementById("quickAddForm").onsubmit = function(e){
 if(auth){
     authReady.then(() => auth.onAuthStateChanged(user => {
         document.getElementById("authLoading").style.display = "none";
+        document.body.classList.remove("auth-pending");
         if(user){
             currentUser = user;
             document.getElementById("authModal").classList.remove("active");
@@ -1411,6 +1416,7 @@ if(auth){
     }));
 } else {
     document.getElementById("authLoading").style.display = "none";
+    document.body.classList.remove("auth-pending");
     document.getElementById("authModal").classList.add("active");
 }
 
