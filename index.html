@@ -1296,7 +1296,7 @@ let activeAuth = null;
 let activeSlot = 0;
 let loginTargetSlot = 0;
 let authStateResolved = [false, false];
-let authSlots = [{auth:null, database:null, user:null}, {auth:null, database:null, user:null}];
+let authSlots = [{auth:null, database:null, user:null, profileName:""}, {auth:null, database:null, user:null, profileName:""}];
 let authReady = Promise.resolve();
 let secondaryAuthReady = Promise.resolve();
 let syncInterval = null;
@@ -1436,7 +1436,7 @@ function activateSession(slot){
     database = authSlots[slot].database;
     auth = activeAuth;
     currentUser = user;
-    profileName = user.displayName || "";
+    profileName = authSlots[slot].profileName || user.displayName || "";
     if(previousUserId && previousUserId !== user.uid){
         expenses = [];
         income = [];
@@ -1450,7 +1450,7 @@ function activateSession(slot){
     }
     document.getElementById("authModal").classList.remove("active");
     document.getElementById("mainContainer").style.display = "block";
-    document.getElementById("userEmail").textContent = profileName || user.email || "User";
+    document.getElementById("userEmail").textContent = profileName || "Set your name";
     document.getElementById("userEmail").style.display = "inline-block";
     ["incomeBtn", "balanceBtn", "recurringBtn", "goalsBtn", "settingsBtn", "switchAccountBtn", "logoutBtn"]
         .forEach(id => document.getElementById(id).style.display = "inline-block");
@@ -1620,7 +1620,7 @@ function openAccountSwitcher(){
         </button>`;
         const active = slot === activeSlot;
         return `<button class="${active ? "primary" : "secondary"}" style="width:100%;padding:12px;margin-bottom:10px;text-align:left" ${active ? "disabled" : `onclick="switchAccount(${slot})"`}>
-            ${active ? "✓" : "↪️"} ${user.displayName || user.email || "Account " + (slot + 1)}
+            ${active ? "✓" : "↪️"} ${authSlots[slot].profileName || user.displayName || "Set your name"}
         </button>`;
     }).join("");
     document.getElementById("accountSwitcherModal").classList.add("active");
@@ -1679,8 +1679,9 @@ function loadUserData(showMessage = true){
             if(!categories.length) categories = [...defaultCategories];
             settings = data.settings || {theme: "system", budgetAlerts: true};
             profileName = (data.profile && data.profile.name) || sessionUser.displayName || "";
+            authSlots[activeSlot].profileName = profileName;
             localStorage.setItem("dailyTrackerProfileName", profileName);
-            document.getElementById("userEmail").textContent = profileName || sessionUser.email || "User";
+            document.getElementById("userEmail").textContent = profileName || "Set your name";
             localStorage.setItem("dailyTrackerUserId", userId);
 
             init();
@@ -1700,6 +1701,7 @@ function loadUserData(showMessage = true){
                 goals = [];
                 categories = [...defaultCategories];
                 settings = {theme: "system", budgetAlerts: true};
+                authSlots[activeSlot].profileName = profileName;
                 localStorage.setItem("dailyTrackerUserId", userId);
                 saveData();
                 init();
@@ -2658,6 +2660,7 @@ function saveProfileName(){
         return;
     }
     profileName = name;
+    authSlots[activeSlot].profileName = profileName;
     localStorage.setItem("dailyTrackerProfileName", profileName);
     if(currentUser && currentUser.updateProfile){
         currentUser.updateProfile({displayName: profileName}).catch(() => {});
