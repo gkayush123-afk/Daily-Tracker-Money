@@ -1641,11 +1641,14 @@ function addAccount(){
 
 // Load user data from Firebase
 function loadUserData(showMessage = true){
-    if(!currentUser || !database) return;
+    const session = authSlots[activeSlot];
+    const sessionUser = session && session.user;
+    const sessionDatabase = session && session.database;
+    if(!sessionUser || !sessionDatabase) return;
 
-    const userId = currentUser.uid;
+    const userId = sessionUser.uid;
     const requestVersion = sessionVersion;
-    const userRef = database.ref('users/' + userId);
+    const userRef = sessionDatabase.ref('users/' + userId);
     const localDataOwner = localStorage.getItem("dailyTrackerUserId");
 
     userRef.once('value').then(snapshot => {
@@ -1709,12 +1712,15 @@ function hasLocalUserData(){
 
 // Setup realtime sync
 function setupRealtimeSync(){
-    if(!currentUser || !database) return;
+    const session = authSlots[activeSlot];
+    const sessionUser = session && session.user;
+    const sessionDatabase = session && session.database;
+    if(!sessionUser || !sessionDatabase) return;
 
-    database.goOnline();
-    const userId = currentUser.uid;
+    sessionDatabase.goOnline();
+    const userId = sessionUser.uid;
     const listenerVersion = sessionVersion;
-    const userRef = database.ref('users/' + userId);
+    const userRef = sessionDatabase.ref('users/' + userId);
     if(activeUserRef) activeUserRef.off();
     activeUserRef = userRef;
 
@@ -1774,11 +1780,14 @@ function mergeSyncedRecords(remoteRecords, localRecords){
 
 // Save to Firebase
 function saveToFirebase(){
-    if(!currentUser || !database) return;
+    const session = authSlots[activeSlot];
+    const sessionUser = session && session.user;
+    const sessionDatabase = session && session.database;
+    if(!sessionUser || !sessionDatabase) return;
 
     isSaving = true;
 
-    const userRef = database.ref('users/' + currentUser.uid);
+    const userRef = sessionDatabase.ref('users/' + sessionUser.uid);
 
     userRef.transaction(remoteData => {
         const remote = remoteData || {};
