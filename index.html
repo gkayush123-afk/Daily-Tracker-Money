@@ -1498,6 +1498,7 @@ function switchAuthTab(tab){
 // Login
 function loginUser(e){
     e.preventDefault();
+    const targetSlot = loginTargetSlot;
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
     const loginError = document.getElementById("loginError");
@@ -1511,6 +1512,9 @@ function loginUser(e){
 
     loginAuth.signInWithEmailAndPassword(email, password)
         .then(userCredential => {
+            authSlots[targetSlot].user = userCredential.user;
+            authSlots[targetSlot].auth = loginAuth;
+            activateSession(targetSlot);
             document.getElementById("loginPassword").value = "";
             loginError.style.display = "none";
             showToast("✅ Logged in successfully!");
