@@ -1403,6 +1403,7 @@ document.getElementById("quickAddForm").onsubmit = function(e){
 // Auth state listeners
 function showLogin(){
     currentUser = null;
+    loginTargetSlot = 0;
     clearInterval(syncInterval);
     syncInterval = null;
     document.getElementById("authModal").classList.add("active");
@@ -1440,7 +1441,7 @@ function handleAuthState(slot, user){
     document.getElementById("authLoading").style.display = "none";
     document.body.classList.remove("auth-pending");
 
-    if(user && !currentUser) activateSession(slot);
+    if(user && (!currentUser || slot === loginTargetSlot)) activateSession(slot);
     else if(!currentUser && authSlots[0].user) activateSession(0);
     else if(!currentUser && authSlots[1].user) activateSession(1);
     else if(!currentUser) showLogin();
