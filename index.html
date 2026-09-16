@@ -1288,7 +1288,7 @@ let activeAuth = null;
 let activeSlot = 0;
 let loginTargetSlot = 0;
 let authStateResolved = [false, false];
-let authSlots = [{auth:null, user:null}, {auth:null, user:null}];
+let authSlots = [{auth:null, database:null, user:null}, {auth:null, database:null, user:null}];
 let authReady = Promise.resolve();
 let secondaryAuthReady = Promise.resolve();
 let syncInterval = null;
@@ -1306,9 +1306,11 @@ try {
     const secondaryApp = firebase.initializeApp(firebaseConfig, "account-switcher");
     secondaryAuth = secondaryApp.auth();
     authSlots[1].auth = secondaryAuth;
+    authSlots[1].database = firebase.database(secondaryApp);
     secondaryAuthReady = secondaryAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
         .catch(error => console.warn("Second account persistence unavailable:", error));
     database = firebase.database();
+    authSlots[0].database = database;
     console.log("Firebase initialized successfully");
 } catch (error) {
     console.error("Firebase initialization error:", error);
@@ -1421,6 +1423,7 @@ function activateSession(slot){
     sessionVersion += 1;
     activeSlot = slot;
     activeAuth = authSlots[slot].auth;
+    database = authSlots[slot].database;
     auth = activeAuth;
     currentUser = user;
     if(previousUserId && previousUserId !== user.uid){
