@@ -1654,24 +1654,18 @@ function loadUserData(showMessage = true){
     userRef.once('value').then(snapshot => {
         if(requestVersion !== sessionVersion || !currentUser || currentUser.uid !== userId) return;
         const data = snapshot.val();
-        const cloudHasUserData = data && (
-            (data.expenses && data.expenses.length > 0) ||
-            (data.income && data.income.length > 0) ||
-            (data.recurring && data.recurring.length > 0) ||
-            (data.goals && data.goals.length > 0) ||
-            (data.budgets && Object.keys(data.budgets).length > 0) ||
-            (data.categories && data.categories.length > defaultCategories.length) ||
-            (data.account && Number(data.account.startingBalance) !== 0)
-        );
+        const cloudHasUserData = data && ["expenses", "income", "account", "budgets", "recurring", "goals", "categories", "settings"]
+            .some(key => Object.prototype.hasOwnProperty.call(data, key));
 
         if(data && cloudHasUserData){
-            expenses = data.expenses || [];
-            income = data.income || [];
+            expenses = normalizeRecords(data.expenses);
+            income = normalizeRecords(data.income);
             account = data.account || {startingBalance: 0};
             budgets = data.budgets || {};
-            recurring = data.recurring || [];
-            goals = data.goals || [];
-            categories = data.categories || [...defaultCategories];
+            recurring = normalizeRecords(data.recurring);
+            goals = normalizeRecords(data.goals);
+            categories = Array.isArray(data.categories) ? data.categories : Object.values(data.categories || {});
+            if(!categories.length) categories = [...defaultCategories];
             settings = data.settings || {theme: "system", budgetAlerts: true};
             localStorage.setItem("dailyTrackerUserId", userId);
 
@@ -1703,6 +1697,11 @@ function loadUserData(showMessage = true){
     });
 }
 
+function normalizeRecords(records){
+    if(Array.isArray(records)) return records;
+    return records && typeof records === "object" ? Object.values(records) : [];
+}
+
 function hasLocalUserData(){
     return expenses.length > 0 || income.length > 0 ||
         Object.keys(budgets).length > 0 || recurring.length > 0 ||
@@ -1728,13 +1727,14 @@ function setupRealtimeSync(){
         if(listenerVersion !== sessionVersion || !currentUser || currentUser.uid !== userId) return;
         const data = snapshot.val();
         if(data){
-            expenses = data.expenses || [];
-            income = data.income || [];
+            expenses = normalizeRecords(data.expenses);
+            income = normalizeRecords(data.income);
             account = data.account || {startingBalance: 0};
             budgets = data.budgets || {};
-            recurring = data.recurring || [];
-            goals = data.goals || [];
-            categories = data.categories || [...defaultCategories];
+            recurring = normalizeRecords(data.recurring);
+            goals = normalizeRecords(data.goals);
+            categories = Array.isArray(data.categories) ? data.categories : Object.values(data.categories || {});
+            if(!categories.length) categories = [...defaultCategories];
             settings = data.settings || {theme: "system", budgetAlerts: true};
 
             localStorage.setItem("expenses", JSON.stringify(expenses));
