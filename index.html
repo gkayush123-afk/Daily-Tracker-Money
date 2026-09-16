@@ -1439,7 +1439,7 @@ function activateSession(slot){
     }
     document.getElementById("authModal").classList.remove("active");
     document.getElementById("mainContainer").style.display = "block";
-    document.getElementById("userEmail").textContent = user.email || user.displayName || "User";
+    document.getElementById("userEmail").textContent = user.displayName || user.email || "User";
     document.getElementById("userEmail").style.display = "inline-block";
     ["incomeBtn", "balanceBtn", "recurringBtn", "goalsBtn", "settingsBtn", "switchAccountBtn", "logoutBtn"]
         .forEach(id => document.getElementById(id).style.display = "inline-block");
@@ -1609,7 +1609,7 @@ function openAccountSwitcher(){
         </button>`;
         const active = slot === activeSlot;
         return `<button class="${active ? "primary" : "secondary"}" style="width:100%;padding:12px;margin-bottom:10px;text-align:left" ${active ? "disabled" : `onclick="switchAccount(${slot})"`}>
-            ${active ? "✓" : "↪️"} ${user.email || user.displayName || "Account " + (slot + 1)}
+            ${active ? "✓" : "↪️"} ${user.displayName || user.email || "Account " + (slot + 1)}
         </button>`;
     }).join("");
     document.getElementById("accountSwitcherModal").classList.add("active");
