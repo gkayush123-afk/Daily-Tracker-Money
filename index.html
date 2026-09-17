@@ -1739,7 +1739,7 @@ function saveToFirebase(){
             income: mergeSyncedRecords(remote.income, income),
             account: {...(remote.account || {}), ...account},
             budgets: {...(remote.budgets || {}), ...budgets},
-            recurring: mergeSyncedRecords(remote.recurring, recurring),
+            recurring,
             goals: mergeSyncedRecords(remote.goals, goals),
             categories: [...new Set([...(remote.categories || []), ...categories])],
             profile: {...(remote.profile || {}), name: profileName},
