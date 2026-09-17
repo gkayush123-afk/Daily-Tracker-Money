@@ -1527,8 +1527,14 @@ function logout(){
     if(!activeAuth) return;
 
     if(confirm("Are you sure you want to logout?")){
+        const loggingOutSlot = activeSlot;
         activeAuth.signOut()
             .then(() => {
+                authSlots[loggingOutSlot].user = null;
+                const remainingSlot = loggingOutSlot === 0 ? 1 : 0;
+                if(authSlots[remainingSlot].user){
+                    activateSession(remainingSlot);
+                }
                 showToast("✅ Logged out successfully");
             })
             .catch(error => {
@@ -1564,12 +1570,13 @@ function switchAccount(slot){
 }
 
 function addAccount(){
-    if(authSlots[1].user){
+    const availableSlot = authSlots.findIndex(slot => !slot.user);
+    if(availableSlot === -1){
         showToast("Both account slots are already in use");
         return;
     }
     closeAccountSwitcher();
-    loginTargetSlot = 1;
+    loginTargetSlot = availableSlot;
     document.getElementById("loginPassword").value = "";
     document.getElementById("loginEmail").value = "";
     document.getElementById("authModal").classList.add("active");
