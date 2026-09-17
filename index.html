@@ -2788,6 +2788,7 @@ function restoreData(event){
 /* TOAST */
 
 function showToast(message){
+    if(/data synced from cloud|local data is being uploaded/i.test(message)) return;
     const toast = document.getElementById("toast");
     toast.textContent = message;
     toast.classList.add("show");
