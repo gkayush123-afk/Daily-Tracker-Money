@@ -1611,13 +1611,11 @@ function loadUserData(showMessage = true){
             localStorage.setItem("dailyTrackerUserId", userId);
 
             init();
-            if(showMessage) showToast("☁️ Data synced from cloud");
         } else {
             // Never copy another user's browser data into a new account.
             if(localDataOwner === userId && hasLocalUserData()){
                 init();
                 saveToFirebase();
-                if(showMessage) showToast("☁️ Your local data is being uploaded");
             } else {
                 expenses = [];
                 income = [];
