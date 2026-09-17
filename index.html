@@ -1158,7 +1158,7 @@ Download or restore your complete data.
             </div>
             <div class="full">
                 <p class="auth-error" id="loginError" role="alert">
-                    Oops! Password galat hai yaar 😅 Try again.
+                    Login details galat hain. Try again.
                 </p>
             </div>
             <div class="full">
@@ -1459,7 +1459,14 @@ function loginUser(e){
             loginError.style.display = "none";
             showToast("✅ Logged in successfully!");
         })
-        .catch(() => {
+        .catch(error => {
+            if(error.code === "auth/user-not-found" || error.code === "auth/invalid-email"){
+                loginError.textContent = "ID galat hai. Please check your email ID.";
+            } else if(error.code === "auth/wrong-password"){
+                loginError.textContent = "Password galat hai. Please try again.";
+            } else {
+                loginError.textContent = "Login details galat hain. Please try again.";
+            }
             loginError.style.display = "block";
         });
 }
