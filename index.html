@@ -1450,13 +1450,7 @@ function loginUser(e){
         return;
     }
 
-    loginAuth.fetchSignInMethodsForEmail(email)
-        .then(methods => {
-            if(!methods.length){
-                throw {code: "auth/user-not-found"};
-            }
-            return loginAuth.signInWithEmailAndPassword(email, password);
-        })
+    loginAuth.signInWithEmailAndPassword(email, password)
         .then(userCredential => {
             authSlots[targetSlot].user = userCredential.user;
             authSlots[targetSlot].auth = loginAuth;
@@ -1468,12 +1462,10 @@ function loginUser(e){
         .catch(error => {
             if(error.code === "auth/user-not-found" || error.code === "auth/invalid-email"){
                 loginError.textContent = "ID galat hai. Please check your email ID.";
-            } else if(error.code === "auth/wrong-password" ||
-                error.code === "auth/invalid-credential" ||
-                error.code === "auth/invalid-login-credentials"){
+            } else if(error.code === "auth/wrong-password"){
                 loginError.textContent = "Password galat hai. Please try again.";
             } else {
-                loginError.textContent = "Login details galat hain. Please try again.";
+                loginError.textContent = "ID ya password galat hai. Please try again.";
             }
             loginError.style.display = "block";
         });
