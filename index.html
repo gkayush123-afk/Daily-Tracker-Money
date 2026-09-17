@@ -1544,6 +1544,7 @@ function logout(){
 }
 
 function openAccountSwitcher(){
+    refreshAccountSlots();
     const accountList = document.getElementById("accountList");
     accountList.innerHTML = [0, 1].map(slot => {
         const user = authSlots[slot].user;
@@ -1569,7 +1570,16 @@ function switchAccount(slot){
     showToast("Account switched");
 }
 
+function refreshAccountSlots(){
+    authSlots.forEach(slot => {
+        if(!slot.auth) return;
+        slot.user = slot.auth.currentUser || null;
+        if(!slot.user) slot.profileName = "";
+    });
+}
+
 function addAccount(){
+    refreshAccountSlots();
     const availableSlot = authSlots.findIndex(slot => !slot.user);
     if(availableSlot === -1){
         showToast("Both account slots are already in use");
