@@ -1667,6 +1667,7 @@ function setupRealtimeSync(){
 
     userRef.on('value', snapshot => {
         if(listenerVersion !== sessionVersion || !currentUser || currentUser.uid !== userId) return;
+        if(isSaving) return;
         const data = snapshot.val();
         if(data){
             expenses = normalizeRecords(data.expenses);
@@ -2480,17 +2481,17 @@ function renderRecurringList(){
                     <b>${r.name}</b><br>
                     <small style="color:var(--muted)">₹${r.amount.toLocaleString("en-IN")} · ${r.category} · Day ${r.day}</small>
                 </div>
-                <button class="delete" onclick="deleteRecurring(${i})">✕</button>
+                <button type="button" class="delete" onclick="deleteRecurring('${String(r.id)}')">✕</button>
             </div>
         `).join("")
         : '<div class="empty">No recurring expenses added.</div>';
 }
 
-function deleteRecurring(index){
+function deleteRecurring(id){
     if(!confirm("Delete this recurring expense?")) return;
-    recurring.splice(index, 1);
-    saveData();
+    recurring = recurring.filter(item => String(item.id) !== String(id));
     renderRecurringList();
+    saveData();
     showToast("Recurring expense deleted");
 }
 
