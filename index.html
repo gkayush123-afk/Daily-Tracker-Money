@@ -1439,7 +1439,7 @@ function switchAuthTab(tab){
 function loginUser(e){
     e.preventDefault();
     const targetSlot = loginTargetSlot;
-    const email = document.getElementById("loginEmail").value.trim();
+    const email = document.getElementById("loginEmail").value.trim().toLowerCase();
     const password = document.getElementById("loginPassword").value;
     const loginError = document.getElementById("loginError");
     loginError.style.display = "none";
@@ -1464,8 +1464,10 @@ function loginUser(e){
                 loginError.textContent = "ID galat hai. Please check your email ID.";
             } else if(error.code === "auth/wrong-password"){
                 loginError.textContent = "Password galat hai. Please try again.";
+            } else if(error.code === "auth/operation-not-allowed"){
+                loginError.textContent = "Email/password login Firebase mein enabled nahi hai.";
             } else {
-                loginError.textContent = "ID ya password galat hai. Please try again.";
+                loginError.textContent = "Login nahi ho saka. ID aur password check karein.";
             }
             loginError.style.display = "block";
         });
