@@ -1450,7 +1450,13 @@ function loginUser(e){
         return;
     }
 
-    loginAuth.signInWithEmailAndPassword(email, password)
+    loginAuth.fetchSignInMethodsForEmail(email)
+        .then(methods => {
+            if(!methods.length){
+                throw {code: "auth/user-not-found"};
+            }
+            return loginAuth.signInWithEmailAndPassword(email, password);
+        })
         .then(userCredential => {
             authSlots[targetSlot].user = userCredential.user;
             authSlots[targetSlot].auth = loginAuth;
