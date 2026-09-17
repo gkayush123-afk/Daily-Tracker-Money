@@ -109,7 +109,6 @@ A comprehensive personal finance tracking web application with **cloud sync** ac
 
 ### Smart Insights
 - Highest spending category
-- Wasteful spending %
 - Savings rate
 - Month-over-month comparison
 - Budget alerts
