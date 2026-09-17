@@ -1468,7 +1468,9 @@ function loginUser(e){
         .catch(error => {
             if(error.code === "auth/user-not-found" || error.code === "auth/invalid-email"){
                 loginError.textContent = "ID galat hai. Please check your email ID.";
-            } else if(error.code === "auth/wrong-password"){
+            } else if(error.code === "auth/wrong-password" ||
+                error.code === "auth/invalid-credential" ||
+                error.code === "auth/invalid-login-credentials"){
                 loginError.textContent = "Password galat hai. Please try again.";
             } else {
                 loginError.textContent = "Login details galat hain. Please try again.";
